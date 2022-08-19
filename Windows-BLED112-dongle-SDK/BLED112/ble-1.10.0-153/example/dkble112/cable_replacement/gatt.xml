@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<configuration>
+
+    <service uuid="1800">
+      <description>Generic Access Profile</description>
+
+      <characteristic uuid="2a00">
+        <properties read="true" const="true" />
+        <value>Silicon Labs CR Demo</value>
+      </characteristic>
+
+      <characteristic uuid="2a01">
+        <properties read="true" const="true" />
+        <value type="hex">4142</value>
+      </characteristic>
+    </service>
+    
+    <service uuid="0bd51666-e7cb-469b-8e4d-2742f1ba77cc" advertise="true">
+        <description>Cable replacement service</description>
+        
+        <characteristic uuid="e7add780-b042-4876-aae1-112855353cc1" id="xgatt_data">
+            <description>Data</description>
+            <properties write="true" indicate="true" />
+            <value variable_length="true" length="20" type="user" />
+        </characteristic>
+    </service>
+    
+</configuration>

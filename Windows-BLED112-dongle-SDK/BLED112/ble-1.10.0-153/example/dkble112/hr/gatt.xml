@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<configuration>
+
+    <service uuid="1800">
+      <description>Generic Access Profile</description>
+
+      <characteristic uuid="2a00">
+        <properties read="true" const="true" />
+        <value>Silicon Labs Heart Rate Demo</value>
+      </characteristic>
+
+      <characteristic uuid="2a01">
+        <properties read="true" const="true" />
+        <value type="hex">4003</value>
+      </characteristic>
+    </service>
+
+    <service type="primary" uuid="180A" id="manufacturer">
+        <characteristic uuid="2A29">
+            <properties read="true" const="true" />
+            <value>Silicon Labs</value>
+        </characteristic>
+    </service>
+
+    <service uuid="180d" advertise="true">
+       <description>HR demo</description>
+       <include id="manufacturer" />
+      <characteristic uuid="2a37" id="xgatt_hr">
+          <properties notify="true" />
+          <value length="2" />
+      </characteristic>
+    </service>
+</configuration>

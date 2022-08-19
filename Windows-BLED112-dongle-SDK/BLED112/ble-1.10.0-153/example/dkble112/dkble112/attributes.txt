@@ -1,0 +1,2 @@
+xgatt_temperature_celsius 16
+xgatt_battery 22

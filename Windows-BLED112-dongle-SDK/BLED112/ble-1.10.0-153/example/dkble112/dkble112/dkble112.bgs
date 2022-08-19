@@ -1,0 +1,92 @@
+dim tmp(5)
+dim ascii(6)
+dim celsius
+dim offset
+dim a
+dim b
+dim c
+
+#init gap mod, bonding and start freerunning times on system boot
+event system_boot(major ,minor ,patch ,build ,ll_version ,protocol_version ,hw )
+	#Set device to advertisement mode and allow undirected connections
+	call gap_set_mode(gap_general_discoverable,gap_undirected_connectable)
+	#Allow pairing
+	call sm_set_bondable_mode(1)
+	
+	#set timer to periodically create an interrupt with interval of 1s
+	call hardware_set_soft_timer(32768,0,0)
+	
+	#set the display to command mode
+	call hardware_io_port_write(1,$7,$1)
+	call hardware_io_port_config_direction(1,$7)
+	#initialize the display
+	call hardware_spi_transfer(0,11,"\x30\x30\x30\x39\x14\x56\x6d\x70\x0c\x06\x01")
+	# Change display cursor pos
+	call hardware_spi_transfer(0,1,"\x80")
+	#set the display to data mode
+	call hardware_io_port_write(1,$7,$3)
+	#Write temperature to display
+	call hardware_spi_transfer(0,16,"    DKBLE112    ")
+	
+	#set the display to command mode
+	call hardware_io_port_write(1,$7,$1)
+	# Change display cursor pos
+	call hardware_spi_transfer(0,1,"\xc0")
+	#set the display to data mode
+	call hardware_io_port_write(1,$7,$3)
+	#Write temperature to display
+	call hardware_spi_transfer(0,16,"Temp:           ")
+end
+
+#timer expired
+event hardware_soft_timer(handle)
+	#Request for ADC reading
+	call hardware_adc_read(14,3,0)
+end
+
+#ADC measurement ready
+event hardware_adc_result(input,value)
+	offset=-1500
+
+	# ADC value is 12 MSB
+	celsius = value / 16
+	# Calculate temperature
+	# ADC*V_ref/ADC_max / T_coeff + offset
+	celsius = (10*celsius*1150/2047) * 10/45 + offset
+
+	#set flags
+	tmp(0:1)=0
+	
+	#set as float
+	tmp(1:4)=float(celsius, -1)
+	
+	#write the temperature information to the GATT database
+	call attributes_write(xgatt_temperature_celsius,0,5,tmp(0:5))
+	
+	#Extracting desimals from integer
+	a = (celsius / 100)						#2X.X
+	b = (celsius / 10) + (a*-10)			#X4.X
+	c = (celsius)      + (a*-100) + (b*-10)	#XX.8
+	
+	#+48 is for desimal -> ascii
+	ascii(0:1) = a + 48 #"2"
+	ascii(1:1) = b + 48 #"4"
+	ascii(2:1) = 46	    #"."
+	ascii(3:1) = c + 48 #"8"
+	ascii(4:1) = $df    #"deg"
+	ascii(5:1) = 67	    #"C"
+	
+	#set the display to command mode
+	call hardware_io_port_write(1,$7,$1)
+	# Change display cursor pos
+	call hardware_spi_transfer(0,1,"\xc6")
+	#set the display to data mode
+	call hardware_io_port_write(1,$7,$3)
+	#Write temperature to display
+	call hardware_spi_transfer(0,6,ascii(0:6))	
+end
+
+event connection_disconnected(handle,result)
+	#in case if disconnect, return to advertisement mode
+    call gap_set_mode(gap_general_discoverable,gap_undirected_connectable)
+end

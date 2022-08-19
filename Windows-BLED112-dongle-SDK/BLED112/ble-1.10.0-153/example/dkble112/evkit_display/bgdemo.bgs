@@ -1,0 +1,9 @@
+dim tmp(10)
+
+event system_boot(major,minor,patch,build,ll_version,protocol,hw)	
+	call hardware_io_port_write(1,$7,$1)
+	call hardware_io_port_config_direction(1,$7)
+	call hardware_spi_transfer(0,11,"\x30\x30\x30\x39\x14\x56\x6d\x70\x0c\x06\x01")
+	call hardware_io_port_write(1,$7,$3)
+	call hardware_spi_transfer(0,12,"Hello World!")
+end

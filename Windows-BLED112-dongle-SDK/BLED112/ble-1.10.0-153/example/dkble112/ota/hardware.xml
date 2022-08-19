@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<hardware>
+    <sleeposc enable="true" ppm="50" />
+	<script enable="true" />
+    <txpower power="15" bias="5" />
+ 	<usart channel="0" mode="spi_master" alternate="2" polarity="negative" phase="0" endianness="msb" baud="2000000" endpoint="none" />
+    <pmux regulator_pin="7" />
+    <sleep enable="true" />
+    <otaboot cs_port="1" cs_pin="2" power_port="1" power_pin="0" uart="0" />
+    <port index="0" tristatemask="0" pull="down" />
+    <port index="1" tristatemask="0" pull="down" />
+    <port index="2" tristatemask="0" pull="down" />
+    <uartboot channel="1" />
+</hardware>

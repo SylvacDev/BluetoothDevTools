@@ -1,0 +1,54 @@
+
+dim tmp(5)
+dim celsius
+dim offset
+
+#init gap mod, bonding and start freerunning times on system boot
+event system_boot(major ,minor ,patch ,build ,ll_version ,protocol_version ,hw )
+    #start advertising in connectable mode
+    call gap_set_mode(gap_general_discoverable,gap_undirected_connectable)
+    #timer at every second repeating
+    call hardware_set_soft_timer(32768,0,0)
+end
+
+event attributes_status(handle, flags)
+	#only start measurement if indications are enabled
+	#does not check handle for validity, but only one characteristic can be indicated in this projects GATT database
+    if flags = 2 then
+		call hardware_set_soft_timer(32768,0,0)
+	end if
+	if flags = 0 then
+		#remove timer when no indications are set
+		call hardware_set_soft_timer(0,0,0)
+	end if
+end
+
+#timer expired
+event hardware_soft_timer(handle)
+    #uses chip internal thermometer
+	call hardware_adc_read(14,3,0)
+end
+
+#ADC ready
+event hardware_adc_result(input,value)
+	offset=-1490
+
+	# ADC value is 12 MSB
+	celsius = value / 16
+	# Calculate temperature
+	# ADC*V_ref/ADC_max / T_coeff + offset
+	celsius = (10*celsius*1150/2047) * 10/45 + offset
+
+	#set flags
+	tmp(0:1)=0
+	
+	#set as float
+	tmp(1:4)=float(celsius, -1)
+	
+	call attributes_write(xgatt_temperature_celsius,0,5,tmp(0:5))
+end
+
+event connection_disconnected(handle,result)
+    #start advertising again after disconnection
+    call gap_set_mode(gap_general_discoverable,gap_undirected_connectable)
+end

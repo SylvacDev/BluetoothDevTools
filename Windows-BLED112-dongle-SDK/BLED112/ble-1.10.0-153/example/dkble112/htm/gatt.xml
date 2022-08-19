@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<configuration>
+
+    <service uuid="1800">
+      <description>Generic Access Profile</description>
+
+      <characteristic uuid="2a00">
+        <properties read="true" const="true" />
+        <value>Silicon Labs HTM demo</value>
+      </characteristic>
+
+      <characteristic uuid="2a01">
+        <properties read="true" const="true" />
+        <value type="hex">0003</value>
+      </characteristic>
+    </service>
+
+    <service type="primary" uuid="180A" id="manufacturer">
+        <characteristic uuid="2A23">
+            <properties read="true" const="true" />
+            <value type="hex">000780c0ffeef00d</value>
+        </characteristic>
+        <characteristic uuid="2A24">
+            <properties read="true" const="true" />
+            <value>modelnumber</value>
+        </characteristic>
+        <characteristic uuid="2A29">
+            <properties read="true" const="true" />
+            <value>Silicon Labs</value>
+        </characteristic>
+    </service>
+
+    <service uuid="1809" advertise="true">
+		<uri>org.bluetooth.service.health_thermometer</uri>
+		<include id="manufacturer" />
+		<description>Health Thermometer Service</description>
+		<characteristic uuid="2a1c" id="xgatt_temperature_celsius">
+			<description>Celsius temperature</description>
+			<properties indicate="true"/>
+			<value type="hex">0000000000</value>
+		</characteristic>
+	</service>
+</configuration>

@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<configuration>
+
+    <service uuid="1800">
+      <description>Generic Access Profile</description>
+
+      <characteristic uuid="2a00">
+        <properties read="true" const="true" />
+        <value>BG Demo</value>
+      </characteristic>
+
+      <characteristic uuid="2a01">
+        <properties read="true" const="true" />
+        <value type="hex">4142</value>
+      </characteristic>
+    </service>
+
+    <service type="primary" uuid="9000" id="manufacturer">
+        <characteristic uuid="9100">
+            <properties read="true" const="true" />
+            <value type="hex">000780c0ffeef00d</value>
+        </characteristic>
+        <characteristic uuid="9101">
+            <properties read="true" const="true" />
+            <value>modelnumber</value>
+        </characteristic>
+        <characteristic uuid="9106">
+            <properties read="true" const="true" />
+            <value>Silicon Labs</value>
+        </characteristic>
+    </service>
+
+    <service uuid="e001">
+       <description>Battery status</description>
+       <include id="manufacturer" />
+      <characteristic uuid="e101" id="xgatt_battery">
+          <properties read="true" notify="true" />
+          <value type="hex">ABCD</value>
+      </characteristic>
+    </service>
+    
+    <service uuid="6d480f49-91d3-4a18-be29-0d27f4109c23">
+        <description>Silicon Labs accelerometer demo service</description>
+        <characteristic uuid="11c3876c-9bda-42cc-a30b-1be83c8059d3" id="x_data">
+            <properties read="true" write="true"/>
+            <value type="hex">0000</value>
+        </characteristic>
+        <characteristic uuid="7c55527b-4027-42ae-ae6d-6d1309e5d97e" id="y_data">
+            <properties read="true" write="true"/>
+            <value type="hex">0000</value>
+        </characteristic>
+        <characteristic uuid="f1fa1ce8-cbcc-4401-8428-ae947bd512ae" id="z_data">
+            <properties read="true" write="true"/>
+            <value type="hex">0000</value>
+        </characteristic>
+    </service>
+</configuration>

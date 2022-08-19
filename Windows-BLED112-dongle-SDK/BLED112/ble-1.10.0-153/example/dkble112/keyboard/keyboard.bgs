@@ -1,0 +1,82 @@
+#declare buffer for building attribute value
+dim tmp(8)
+#buffer for accelerometer communication
+dim acc(6)
+
+dim hid_attribute
+
+event system_boot(major,minor,patch,build,ll_version,protocol,hw)
+    #start advertising in connectable mode
+    call gap_set_mode(gap_general_discoverable,gap_undirected_connectable)
+	
+    call sm_delete_bonding($ff)
+    
+	call sm_set_bondable_mode(1)
+
+    call gap_set_adv_parameters($20, $40, $07)
+    
+    #use default report for keyboard
+    hid_attribute = hid_keyboard_in
+end
+
+dim cmdresult
+dim data_len
+dim tval
+event hardware_soft_timer(handle)
+
+	#buttons
+	call hardware_io_port_read(0,3)(cmdresult,data_len,tval)
+#	tmp(0:1)= tval
+	tmp(0:1)=2#left shift
+    tmp(1:1)=0#reserved
+    tmp(2:1)=4#press A
+    tmp(3:1)=0#release
+    tmp(4:1)=0
+    tmp(5:1)=0
+    tmp(6:1)=0
+    tmp(7:1)=0	
+	call attributes_write(hid_attribute,0,8,tmp(0:8))
+
+    tmp(0:1)=0
+    tmp(1:1)=0
+    tmp(2:1)=0
+    tmp(3:1)=0
+    tmp(4:1)=0
+    tmp(5:1)=0
+    tmp(6:1)=0
+    tmp(7:1)=0
+	call attributes_write(hid_attribute,0,8,tmp(0:8))
+
+end
+
+event connection_disconnected(handle,result)
+    #start advertising again after disconnection
+    call gap_set_mode(gap_general_discoverable,gap_undirected_connectable)
+     #stop timer
+    call hardware_set_soft_timer(0,0,0)
+end
+
+event connection_status(connection, flags, address, address_type, conn_interval, timeout, latency, bonding)
+    if flags &  connection_completed then
+        call sm_encrypt_start(0, 1)
+
+        #timer at every second repeating
+        call hardware_set_soft_timer(32768,0,0)
+    
+        #always initialize protocol mode to default 1 after connection
+        call attributes_write(hid_protocol_mode,0,1,1)
+        hid_attribute = hid_keyboard_in
+    end if
+end
+
+event attributes_value(connection, reason, handle, offset, value_len, value_data)
+        
+    if value_data(0:1) = 1 then
+        #switched to report modes
+        hid_attribute = hid_keyboard_in
+    end if
+    if value_data(0:1)=2 then
+        #switched to boot mode
+        hid_attribute = hid_boot_keyboard_in
+    end if
+end

@@ -1,0 +1,4 @@
+xgatt_battery 16
+x_data 20
+y_data 22
+z_data 24

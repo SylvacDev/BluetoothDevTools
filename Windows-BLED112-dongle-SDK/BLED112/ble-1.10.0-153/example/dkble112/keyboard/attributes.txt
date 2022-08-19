@@ -1,0 +1,8 @@
+xgatt_battery 13
+hid_keyboard_in 16
+hid_keyboard_out 20
+hid_keyboard_feature 23
+hid_control 30
+hid_boot_keyboard_in 32
+hid_boot_keyboard_out 35
+hid_protocol_mode 37

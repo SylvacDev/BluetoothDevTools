@@ -1,0 +1,68 @@
+dim result
+
+dim in(20) # endpoint data in
+dim in_len
+
+dim out(20) # endpoint data out
+dim out_len
+
+event system_boot(major, minor, patch, build, ll_version, protocol_version, hw)
+    call system_endpoint_set_watermarks(5, 0, 0) # disable watermarks
+
+    call gap_set_mode(gap_general_discoverable, gap_undirected_connectable)
+end
+
+event attributes_status(handle, flags)
+    if handle = xgatt_data then
+        if flags & 2 then
+            call system_endpoint_set_watermarks(5, 1, $ff) # set RX watermark
+        
+            # TODO: Resend endpoint data in when indications are enabled
+        else
+            call system_endpoint_set_watermarks(5, 0, $ff) # disable RX watermark
+        end if
+    end if
+end
+
+event system_endpoint_watermark_rx(endpoint, size)
+    if endpoint = 5 then
+        in_len = size
+        if in_len > 20 then
+            in_len = 20
+        end if
+
+        call system_endpoint_set_watermarks(5, 0, $ff) # disable RX watermark
+        call system_endpoint_rx(5, in_len)(result, in_len, in(0:in_len))
+        call attributes_write(xgatt_data, 0, in_len, in(0:in_len))
+    end if
+end
+
+event attclient_indicated(connection, attrhandle)
+    if attrhandle = xgatt_data then
+        call system_endpoint_set_watermarks(5, 1, $ff) # set RX watermark
+        in_len = 0
+    end if
+end
+
+event attributes_value(connection, reason, handle, offset, value_len, value_data)
+    if handle = xgatt_data then
+        out(0:value_len) = value_data(0:value_len)
+        out_len = value_len
+        call system_endpoint_set_watermarks(5, $ff, out_len) # set TX watermark
+    end if
+end
+
+event system_endpoint_watermark_tx(endpoint, size)
+    if endpoint = 5 then
+        call system_endpoint_set_watermarks(5, $ff, 0) # disable TX watermark
+        call system_endpoint_tx(5, out_len, out(0:out_len))
+        call attributes_user_write_response(0, 0) # respond to connection handle 0 (only single connection supported)
+        out_len = 0
+    end if
+end
+
+event connection_disconnected(connection, reason)
+    call system_endpoint_set_watermarks(5, 0, 0) # disable watermarks
+    
+    call gap_set_mode(gap_general_discoverable, gap_undirected_connectable)
+end

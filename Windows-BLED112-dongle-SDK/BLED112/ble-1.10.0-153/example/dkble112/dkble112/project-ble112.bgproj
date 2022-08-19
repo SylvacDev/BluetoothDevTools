@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<project>
+    <gatt in="gatt.xml" />
+    <hardware in="hardware.xml" />    
+    <script in="dkble112.bgs" />
+	<usb_main in="cdc.xml" />
+	<device type="ble112" />
+    <image out="out-ble112.hex" />    
+</project>

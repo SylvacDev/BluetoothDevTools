@@ -1,0 +1,8 @@
+<?xml version="1.0" ?>
+<memory>
+    <segment name="idata" size="192" type="bytes"/>
+    <segment name="bit" size="8" type="bits"/>
+    <segment name="code" size="92409" type="bytes"/>
+    <segment name="data" size="29" type="bytes"/>
+    <segment name="xdata" size="2828" type="bytes"/>
+</memory>

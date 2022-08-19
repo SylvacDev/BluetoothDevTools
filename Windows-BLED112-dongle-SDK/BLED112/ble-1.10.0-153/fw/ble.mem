@@ -1,0 +1,9 @@
+<?xml version="1.0" ?>
+<memory>
+    <segment name="code" size="100558" type="bytes"/>
+    <segment name="idata" size="192" type="bytes"/>
+    <segment name="banked_code_add" size="6396" type="bytes"/>
+    <segment name="xdata" size="3014" type="bytes"/>
+    <segment name="bit" size="8" type="bits"/>
+    <segment name="data" size="29" type="bytes"/>
+</memory>

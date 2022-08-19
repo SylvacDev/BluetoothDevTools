@@ -1,0 +1,52 @@
+#declare buffer for building attribute value
+dim tmp(1)
+#variable to save handle
+dim batconn_handle
+
+#store battery measurement result
+dim batresult
+
+event system_boot(major,minor,patch,build,ll_version,protocol,hw)
+    batconn_handle=$ff
+    #start advertising in connectable mode
+    call gap_set_mode(gap_general_discoverable,gap_undirected_connectable)
+end
+
+event attributes_user_read_request(connection, handle, offset, maxsize)
+	batconn_handle=connection
+	#start measurement, read VDD/3, 9 effective bits 
+	call hardware_adc_read(15,3,0)
+end
+
+event hardware_adc_result(input,value)
+    #scale value to range 0-100
+	#measurement range is 32768=1.15v*3=3.45V
+	#new battery ADC measurement is 20912=2.52v
+	#minimum battery voltage is 2.0 volts=2.0v/3.45v*32768= 18996
+	#20912-18996=1916
+	
+	batresult=(value-18995)*100/1916
+	
+	#clip to 100%
+	if batresult>100 then
+		batresult=100
+	end if
+	if batresult<0 then
+	    batresult=0
+	end if
+
+	tmp(0:1)=batresult
+
+	if batconn_handle<$ff then
+		#if connection handle is valid
+		call attributes_user_read_response(batconn_handle,0,1,tmp(0:1))
+		batconn_handle=$ff
+	end if
+end
+
+event connection_disconnected(handle,result)
+    #clear cached handle
+    batconn_handle=$ff
+    #start advertising again after disconnection
+    call gap_set_mode(gap_general_discoverable,gap_undirected_connectable)
+end

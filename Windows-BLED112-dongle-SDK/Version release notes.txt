@@ -1,0 +1,154 @@
+/*******************************************************************************/
+/ BLED112 SDK FOR USE WITH SYLVAC BLUETOOTH LOW ENERGY ENABLED PRODUCTS         /
+/ VERSION RELEASE NOTES                                                         /
+/*******************************************************************************/
+
+--------------------
+Version 07.07.2021 :
+--------------------
+Moved Sylvac custom Bluetooth GATT profiles out of this folder, only kept BLED112 SDK related
+Changed root folder name from "Sylvac Bluetooth GATT and SDK" to "Sylvac - BLED112 dongle SDK"
+
+Updated Bluegiga stack          ble-1.10.0-153
+Updated BG software RN          Bluetooth Smart Software Release Notes 6.1
+Updated BG API REF              Bluetooth Smart Software API Documentation 4.1
+Updated READ ME FIRST           Dedicated contents
+
+--------------------
+Version 14.01.2019 :
+--------------------
+Change root folder name from "Sylvac BT4.0 - Developer" to "Sylvac Bluetooth GATT and SDK"
+
+Updated MEM-PM 292-1806-01      Minor corrections
+Updated MEM-PM 292-1806-02      Add connection procedure (annex) and comparison between former and new profiles
+Updated MEM-PM 292-1538-01      Add eco mode and advertisement idle features
+
+--------------------
+Version 16.04.2018 :
+--------------------
+Added READ ME FIRST             Advice on how to start
+Updated Bluegiga stack          ble-1.6.0-140
+Updated BG software RN          Bluetooth Smart Software Release Notes 4.6
+Updated BG API REF              Bluetooth Smart Software API Documentation 3.11
+Updated INS-PM 292-1340-01      BLED112 firmware update rev E
+Added SPE-PM 292-1746-01        Sylvac Metrology Service Specification
+Added SPE-PM 292-1744-01        Simple Data Service Specification
+Replaced MEM-PM 292-1442-01     By MEM-PM 292-1806-03 Bluetooth Profile Recommendation For Use
+Replaced MEM-PM 292-1441-01     By MEM-PM 292-1806-02 Bluetooth Profile Compatibility
+Replaced MEM-PM 292-1303-03     By MEM-PM 292-1806-04 Bluetooth Profile Quick-Start Guide
+Replaced MEM-PM 292-1251-01     By MEM-PM 292-1806-01 Bluetooth Profile Specifications
+Replaced MAN-S_DIAL...          By Bluetooth user manual extract
+Removed MEM-PM292-1321-01
+Removed MEM-PM292-1304-03       (included in MEM-PM 292-1806-03)
+Removed MEM-PM292-1304-01
+
+Remark:
+- Moving to new Bluetooth profiles
+    add SIMPLE profile (no pairing)
+    add HID profile (keyboard emulation)
+    make PAIR profile more in accordance with Bluetooth specifications
+- The Bluegiga stack 1.5.0-137 has not been used by Sylvac
+    Sylvac has determined after testing that build 137 was less stable than previous build 130 in multi slave configuration
+
+--------------------
+Version 07.06.2016 :
+--------------------
+Updated Dial Manual             Rev 2014.11
+Updated nRF8001                 nRF8001 Product Specification  v1.3
+Updated Bluegiga stack          ble-1.4.2-130
+Updated BG software RN          Bluetooth Smart Software Release Notes v143
+Updated BG API REF              Bluetooth Smart Software API Documentation v36
+
+--------------------
+Version 28.09.2015 :
+--------------------
+Added BLED112_Datasheet
+Updated Bluegiga stack          ble 1.3.2-122
+Updated BG API REF note         Release note V2.0
+Added MEM-PM 292-1538-01        Additional features (saver mode)
+Modif MEM-PM 292-1441-01        Minor explanation changes (UUID, service)
+Modif MEM-PM 292-1251-01        Info on service discovery procedure
+
+--------------------
+Version 20.10.2014 :
+--------------------
+Updated Dial Manual             Rev 2014.15
+Updated Bluegiga stack          ble 1.3.1-119
+Updated BG API REF              API ref V1.3 (doc V3.5)
+Updated BG API REF note         Release note V1.9
+Modif MEM-PM292-1304-01         Sylvac changed his mind about erasing all pairing keys
+Added MEM-PM 292-1441-01        Interoperability (GATT profile vs master software)
+Modif MEM-PM292-1251-01         Security and end references
+Replaced                        file "MEM-PM289-1245-02" by "MEM-PM 292-1442-01"
+
+--------------------
+Version 05.03.2014 :
+--------------------
+Updated Dial Manual             Rev 2013.10
+Modif MEM-PM289-1245-02         Info on connection parameters (min/max, timing change request)
+Modif MEM-PM292-1251-01         Info on full procedure for services discovery
+
+--------------------
+Version 08.11.2013 :
+--------------------
+Updated Bluegiga stack          ble 1.2.1-91
+Updated BG API REF              API ref V1.2 (doc V1.3)
+Updated BG API REF note         Release note V1.3
+Modif MEM-PM292-1251-01         More information on data payload length VS Sylvac commands
+Modif MEM-PM292-1304-01         File name. shows Sylvac way of use (other ways moved in annex for information)
+Modif MEM-PM292-1321-01         Timing parameters were false in "Raw data" column for connect direct cmd and connection evt
+Removed BG - PS Description     Move into MEM-PM292-1304-01 (annex section)
+
+--------------------
+Version 04.10.2013 :
+--------------------
+Updated nRF8001 PS              Nordic product specification V1.1 to V1.2
+Removed 116-1228-02             Dongle firmware update procedure
+Added INS-PM292-1340-01         New procedure for firmware update
+Updated Bluegiga stack          ble 1.2.0-88
+Updated BG API REF              API ref V1.1 to V1.2
+added BG API REF note           Release note
+Removed MEM-PM292-1316-01       Useless since signed drivers are available
+Modif MEM-PM292-1303-03         Intro, ref files name (generic)
+Modif MEM-PM292-1321-01         Ref files name (generic)
+
+--------------------
+Version 06.06.2013 :
+--------------------
+Modif MEM-PM292-1303-03         Param "Time out" was not updated in cmd example according to text above (0x000f -> 0x001E)
+Added MEM-PM292-1321-01         Bluegiga API commands list (quick startup 1 device)
+Updated Dial Manual             Update (languages corrections, etc.)
+Updated BLED112 drivers         Update dongle drivers with signed one
+Modif almost all                Minor English corrections
+Modif MEM-PM292-1304-01         Update BGAPI ref (page -> chapter)
+
+--------------------
+Version 22.04.2013 :
+--------------------
+Modif MEM-PM292-1251-01         add [cr] for cmd ?, VER?, TOL? in example (readability)
+Modif MEM-PM292-1303-03         cmd write format compatible with nRF8001 rev D (2 bytes)
+Added MEM-PM292-1316-01         driver installation on WIN8
+Modif MEM-PM289-1245-02         add advertising sequence, add instrument states summary
+
+--------------------
+Version 27.03.2013 :
+--------------------
+Updated Bluegiga stack          ble 1.1.1-71
+Modif MEM-PM292-1303-03         build 71, ref to BG API chapter, cmd write
+Modif MEM-PM292-1251-01         split cmd > 20bytes, encryption not used
+Modif MEM-PM292-1304-03         arrow Reset(connection)-Advertisement
+
+--------------------
+Version 29.01.2013 :
+--------------------
+Internal validation
+Added filigrane « DRAFT »
+Added MEM-PM292-1304-03         replace scanned version
+Modif MEM-PM292-1251-01         tol
+Modif MEM-PM289-1245-02         timing
+Modif MEM-PM292-1303-03         date, timing
+
+--------------------
+Version 21.01.2013 :
+--------------------
+Initial documentation

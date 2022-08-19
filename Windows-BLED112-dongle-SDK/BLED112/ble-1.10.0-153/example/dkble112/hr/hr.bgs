@@ -1,0 +1,28 @@
+#declare buffer for building attribute value
+dim tmp(2)
+
+event system_boot(major,minor,patch,build,ll_version,protocol,hw)
+    #start advertising in connectable mode
+    call gap_set_mode(gap_general_discoverable,gap_undirected_connectable)
+    #timer at every second repeating
+    call hardware_set_soft_timer(32768,0,0)
+end
+
+event hardware_soft_timer(handle)
+    #measure potentiometer
+    call hardware_adc_read(6,1,2)
+end
+
+event hardware_adc_result(input,value)
+    #build simple characteristic value response
+    tmp(0:1)=2
+    #calculate some valid hr value 20-224
+    tmp(1:1)=value/160+20
+
+    call attributes_write(xgatt_hr,0,2,tmp(0:2))
+end
+
+event connection_disconnected(handle,result)
+    #start advertising again after disconnection
+    call gap_set_mode(gap_general_discoverable,gap_undirected_connectable)
+end

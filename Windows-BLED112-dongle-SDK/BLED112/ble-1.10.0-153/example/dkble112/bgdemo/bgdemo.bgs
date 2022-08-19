@@ -1,0 +1,25 @@
+dim tmp(10)
+
+event system_boot(major ,minor ,patch ,build ,ll_version ,protocol_version ,hw )
+#set to advertising mode
+	call gap_set_mode(gap_general_discoverable,gap_undirected_connectable)
+#set bondable mode
+	call sm_set_bondable_mode(1)
+#start timer at 1second interval, handle 0, and repeating
+	call hardware_set_soft_timer(32768,0,0)
+end
+
+event hardware_soft_timer(handle)
+#start adc read
+	call hardware_adc_read(15,3,0)
+end
+
+event hardware_adc_result(input,value)
+#adc read complete, write result to attribute
+	call attributes_write(xgatt_battery,0,2,value)
+end
+
+event connection_disconnected(handle,result)
+#connection disconnected, continue advertising
+    call gap_set_mode(gap_general_discoverable,gap_undirected_connectable)
+end

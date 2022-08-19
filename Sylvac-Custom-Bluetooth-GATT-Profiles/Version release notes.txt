@@ -7,10 +7,10 @@
 Version 07.07.2021 :
 --------------------
 Moved BLED112 SDK out of this folder, only kept Bluetooth GATT related
-Changed root folder name from "Sylvac Bluetooth GATT and SDK" to "Sylvac - Custom Bluetooth GATT profile"
+Changed root folder name from "Sylvac Bluetooth GATT and SDK" to "Sylvac - Custom Bluetooth GATT profiles"
 
 Removed nRF8001_PS_v1.3          
-Updated SPE PM-292-1744-01      Example of measurement conversion (broadcast + notify)      A FAIRE...
+Updated SPE PM-292-1744-01      Example of measurement conversion (broadcast + notify)
 Updated MEM-PM292-1806-01       Web links
 Updated READ ME FIRST           Dedicated contents
 

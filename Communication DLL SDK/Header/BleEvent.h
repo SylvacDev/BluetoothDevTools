@@ -1,7 +1,7 @@
 #pragma once
 
 #include <windows.h>
-#include "Constante.h"
+#include "ConstanteVisible.h"
 
 /**
  * @brief PHY update event information.

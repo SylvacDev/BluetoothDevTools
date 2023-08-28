@@ -1,0 +1,57 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net7.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <UseWPF>true</UseWPF>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="System.IO.Ports" Version="7.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="BgApi">
+      <HintPath>..\SylvacBleLib\BgApi.dll</HintPath>
+    </Reference>
+    <Reference Include="CentralLayer">
+      <HintPath>..\SylvacBleLib\CentralLayer.dll</HintPath>
+    </Reference>
+    <Reference Include="ConnectionLayer">
+      <HintPath>..\SylvacBleLib\ConnectionLayer.dll</HintPath>
+    </Reference>
+    <Reference Include="CoreWpfUtils">
+      <HintPath>..\SylvacBleLib\CoreWpfUtils.dll</HintPath>
+    </Reference>
+    <Reference Include="EssaiWpf">
+      <HintPath>..\SylvacBleLib\EssaiWpf.dll</HintPath>
+    </Reference>
+    <Reference Include="LayerCommons">
+      <HintPath>..\SylvacBleLib\LayerCommons.dll</HintPath>
+    </Reference>
+    <Reference Include="LibUtils">
+      <HintPath>..\SylvacBleLib\LibUtils.dll</HintPath>
+    </Reference>
+    <Reference Include="LogUtils">
+      <HintPath>..\SylvacBleLib\LogUtils.dll</HintPath>
+    </Reference>
+    <Reference Include="ScanLayer">
+      <HintPath>..\SylvacBleLib\ScanLayer.dll</HintPath>
+    </Reference>
+    <Reference Include="SerialCom">
+      <HintPath>..\SylvacBleLib\SerialCom.dll</HintPath>
+    </Reference>
+    <Reference Include="StackComposition">
+      <HintPath>..\SylvacBleLib\StackComposition.dll</HintPath>
+    </Reference>
+    <Reference Include="SylvacBleLib">
+      <HintPath>..\SylvacBleLib\SylvacBleLib.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+    <Exec Command="xcopy &quot;$(SolutionDir)SylvacBleLib\dllres\win-x64\serialwin.dll&quot; &quot;$(TargetDir)dllres\win-x64\&quot; /Y /I" />
+  </Target>
+
+</Project>

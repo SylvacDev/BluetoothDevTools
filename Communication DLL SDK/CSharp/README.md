@@ -1,4 +1,4 @@
-BT5Communication basic use
+Sylvac Bluetooth library basic use
 =========================================
 
 ## 1. Introduction
@@ -19,23 +19,16 @@ Add the following post-build event to your project :
 Install the following NuGet package : `System.IO.Ports` by Microsoft.
 
 ## 3. Initialization of the DLL
-You can get the Main Singleton using
+You can get the Bluetooth manager via the `SylvacBleLib.BleManager.Instance` singleton.
 ```cs
 using SylvacBleLib;
 
-public MainViewModel()
-{
-     //Init Ble Manager
-    _bleManager = BleManager.Instance;
-}
+_bleManager = BleManager.Instance;
 ```
-Then start it with (in this example after the window is loaded)
+Then start Bluetooth functionality with the `Start()` method of `BleManager`
 ```cs
-private void Loaded()
-{
-    //Start the BT Communication DLL
-    _bleManager.Start();
-}
+//Start the BT Communication DLL
+_bleManager.Start();
 ```
 And dispose it when exiting the program
 ```cs
@@ -47,27 +40,36 @@ public void OnExit(object sender, EventArgs e)
 
 ## 4. Detect Dongles
 
-The list of compatible Bluetooth dongles is given by `_bleManager.BleCentrals`.
+The list of compatible Bluetooth dongles is given by `BleManager.Instance.BleCentrals`.
 
-To register to dongle added/removed events
+To register to dongle added/removed events, use the `ListChanged` event:
 ```cs
-_bleManager.BleCentralManager.BleCentrals.ListChanged += BleCentrals_ListChanged;
+_bleManager.BleCentrals.ListChanged += BleCentrals_ListChanged;
 
-private void BleCentrals_ListChanged(object? sender, LibUtils.Collections.ListMutationEventArgs<SylvacBleLib.Central.BleCentral> e)
+private void BleCentrals_ListChanged(object? sender, ListMutationEventArgs<BleCentral> e)
 {
     foreach (var itemAdded in e.AddedItems)
     {
-        Application.Current.Dispatcher.Invoke(new Action(() => { DongleList.Add(itemAdded); }));
+        // Update the ObservableCollection on the UI thread.
+        Application.Current.Dispatcher.Invoke(() => DongleList.Add(itemAdded));
     }
 
     foreach (var itemRemoved in e.RemovedItems)
     {
-        Application.Current.Dispatcher.Invoke(new Action(() => { DongleList.Remove(itemRemoved); }));
+        // Update the ObservableCollection on the UI thread.
+        Application.Current.Dispatcher.Invoke(() => DongleList.Remove(itemRemoved));
     }
 
     SelectedDongle = DongleList.FirstOrDefault();
 }
 ```
+
+### 4.1 Note on the received events thread
+The events received from `BleManager` are on a non-UI thread used by the manager to transmit events.
+
+This thread should not be blocked (using `lock` or mutexes for example), otherwise no other event will be received from `BleManager` until the thread is unblocked.
+
+Since the `BleManager` is not a UI thread, it is necessary to use a dispatcher to interact with the UI. For example, `Application.Current.Dispatcher.Invoke` in WPF.
 
 ## 5. Scan instruments
 
@@ -96,65 +98,84 @@ private void Advertisers_ListChanged(object? sender, LibUtils.Collections.ListMu
         Application.Current.Dispatcher.Invoke(new Action(() => { InstrumentAdvertisingList.Remove(itemRemoved); }));
     }
 }
-
 ```
 Then start the Scan
 ```cs
 //Start the Scan
-_bleManager.BleScanManager.StartScan();
+BleManager.Instance.BleScanManager.StartScan();
 ```
 
 ### Clear the scan list
 To clear the scan list:
 ```cs
-_bleManager.BleScanManager.ClearScan();
+BleManager.Instance.BleScanManager.ClearScan();
 ```
 This causes the `BleScanManager.Advertisers.ListChanged` event to be raised.
 
 ### Stop scan
 To stop the scan:
 ```cs
-_bleManager.BleScanManager.StopScan();
+BleManager.Instance.BleScanManager.StopScan();
 ```
 
 ## 6. Connect instrument
 To be able to connect an instrument you need the dongle object, and the MAC address of the instrument.
 The MAC address can be retrieved from the advertising device property `BleAdvItem.Mac`.
 
-Use the command `BleCentral.StartConnect()` to require to connect an instrument. It will generate a `BlePeripheral`
+Use the method `BleCentral.StartConnect()` to request a connection to an instrument. It will generate a `BlePeripheral`
 object that allows to interact with the instrument once it is connected.
 
 ### Connection
 ```cs
-SelectedDongle.StartConnect(SelectedInstrumentAdvertising.Mac, out BlePeripheral blePeripheral);
+SelectedDongle.StartConnect(bleAdvItem.Mac, out BlePeripheral blePeripheral);
 ```
 
-### Deconnection
+### Disconnection
+Disconnect the peripheral but keep it assigned to the dongle:
 ```cs
 blePeripheral.StartDisconnect();
+```
+Or disconnect the peripheral and unassign it from the dongle:
+```cs
 SelectedDongle.RemovePeripheral(blePeripheral)
 ```
 
 ## 7. Instrument properties
-You can access several properties of a connected instrument by simply binding to them in your xaml file.
-<!-- Display live value, current unit and measurement mode -->
-<TextBlock Text="{Binding NumericalValue}"/>
-<TextBlock Text="{Binding MeasurementParams.Unit}"/>
-<TextBlock Text="{Binding MeasurementParams.MeasuringMode}"/>
+The live measurement and other information from the instrument can retrieved with the following properties.
 
-## 8. Send command to instrument
-To send command you can use 
+- `BlePeripheral.NumericalValue` gets the current floating point value.
+  - `BlePeripheral.NumericalValueChanged` to receive every value in an event.
+  - `BlePeripheral.PropertyChanged` to be notified of property changes.
+- `BlePeripheral.MeasurementParams.Unit` gets the current unit.
+- `BlePeripheral.MeasurementParams.MeasuringMode` gets the current measuring mode (normal, min, max, delta).
+- `BlePeripheral.MeasurementParams.PropertyChanged` to be notified of property changes.
+
+## 8. Send a command to an instrument
+To send a command to an instrument, you can use the `SendCommand()` method of `BlePeripheral`.
 ```cs
-ConnectedInstrument.SendCommand("ID?");
+blePeripheral.SendCommand("ID?");
 ```
-To get the response you need to register to the instrument response event first
-```cs
-_connectedInstrument.InstrumentResponseReceived += _connectedInstrument_InstrumentResponseReceived;
 
-private void _connectedInstrument_InstrumentResponseReceived(object? sender, LibUtils.Event.EventArgsValue<string> e)
+### 8.1 Receive a response from an instrument
+To get the response of the instrument, you can register to the `BlePeripheral.InstrumentResponseReceived` event.
+
+```cs
+blePeripheral.InstrumentResponseReceived += BlePeripheral_InstrumentResponseReceived;
+
+private void BlePeripheral_InstrumentResponseReceived(object? sender, LibUtils.Event.EventArgsValue<string> e)
 {
- //Receive the result of sended commands
+    // Receive the response to the sent command.
 }
 ```
-To get the value after pressing on the instrument physical button, you can use the following property
-<TextBlock Text="{Binding SmsData}"/>
+
+## 9. Receive a value sent with the instrument button
+To get the value sent by pressing on the instrument physical button, you can register to the `BlePeripheral.InstrumentButtonPressed` event.
+
+```cs
+blePeripheral.InstrumentButtonPressed += BlePeripheral_InstrumentButtonPressed;
+
+private void BlePeripheral_InstrumentButtonPressed(object? sender, LibUtils.Event.EventArgsValue<string> e)
+{
+    // Receive value sent with the instrument button.
+}
+```

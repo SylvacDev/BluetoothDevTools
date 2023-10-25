@@ -15,17 +15,14 @@
     <Reference Include="BgApi">
       <HintPath>..\SylvacBleLib\BgApi.dll</HintPath>
     </Reference>
-    <Reference Include="CentralLayer">
-      <HintPath>..\SylvacBleLib\CentralLayer.dll</HintPath>
+    <Reference Include="LayerCentral">
+      <HintPath>..\SylvacBleLib\LayerCentral.dll</HintPath>
     </Reference>
-    <Reference Include="ConnectionLayer">
-      <HintPath>..\SylvacBleLib\ConnectionLayer.dll</HintPath>
+    <Reference Include="LayerConnection">
+      <HintPath>..\SylvacBleLib\LayerConnection.dll</HintPath>
     </Reference>
     <Reference Include="CoreWpfUtils">
       <HintPath>..\SylvacBleLib\CoreWpfUtils.dll</HintPath>
-    </Reference>
-    <Reference Include="EssaiWpf">
-      <HintPath>..\SylvacBleLib\EssaiWpf.dll</HintPath>
     </Reference>
     <Reference Include="LayerCommons">
       <HintPath>..\SylvacBleLib\LayerCommons.dll</HintPath>
@@ -36,14 +33,14 @@
     <Reference Include="LogUtils">
       <HintPath>..\SylvacBleLib\LogUtils.dll</HintPath>
     </Reference>
-    <Reference Include="ScanLayer">
-      <HintPath>..\SylvacBleLib\ScanLayer.dll</HintPath>
+    <Reference Include="LayerScan">
+      <HintPath>..\SylvacBleLib\LayerScan.dll</HintPath>
     </Reference>
     <Reference Include="SerialCom">
       <HintPath>..\SylvacBleLib\SerialCom.dll</HintPath>
     </Reference>
-    <Reference Include="StackComposition">
-      <HintPath>..\SylvacBleLib\StackComposition.dll</HintPath>
+    <Reference Include="LayerStack">
+      <HintPath>..\SylvacBleLib\LayerStack.dll</HintPath>
     </Reference>
     <Reference Include="SylvacBleLib">
       <HintPath>..\SylvacBleLib\SylvacBleLib.dll</HintPath>

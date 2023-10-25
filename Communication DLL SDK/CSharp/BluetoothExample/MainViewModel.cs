@@ -1,4 +1,5 @@
 using CoreWpfUtils.Commands;
+using LibUtils.Collections;
 using SylvacBleLib;
 using SylvacBleLib.Central;
 using SylvacBleLib.Peripheral;
@@ -13,21 +14,28 @@ namespace BluetoothExample
 {
     public class MainViewModel : INotifyPropertyChanged
     {
-#pragma warning disable CS0067
         public event PropertyChangedEventHandler? PropertyChanged;
-#pragma warning restore CS0067
+
         public BleManager _bleManager = BleManager.Instance;
+
         public ObservableCollection<BleCentral> DongleList { get; }
         public ObservableCollection<BleAdvItem> InstrumentAdvertisingList { get; }
         public ObservableCollection<BlePeripheral> ConnectedInstrumentsList { get; }
 
+        public SimpleCommand StartScanCommand { get; }
+        public SimpleCommand StopScanCommand { get; }
+        public SimpleCommand ClearScanCommand { get; }
+        public SimpleCommand ConnectInstrumentCommand { get; }
+        public SimpleCommand DisconnectInstrumentCommand { get; }
+
         public MainViewModel()
         {
-            //Init Ble Manager
             _bleManager = BleManager.Instance;
+
+            // Start the Bluetooth manager.
             _bleManager.Start();
 
-            _bleManager.BleCentralManager.BleCentrals.ListChanged += BleCentrals_ListChanged;
+            _bleManager.BleCentrals.ListChanged += BleCentrals_ListChanged;
             _bleManager.BleScanManager.Advertisers.ListChanged += Advertisers_ListChanged;
             _bleManager.BlePeripherals.ListChanged += Peripherals_ListChanged;
 
@@ -50,65 +58,62 @@ namespace BluetoothExample
                 if (_selectedDongle != value)
                 {
                     _selectedDongle = value;
-                    NotifyPropertyChanged("SelectedDongle");
+                    NotifyPropertyChanged(nameof(SelectedDongle));
                 }
             }
         }
         private BleCentral? _selectedDongle;
 
-        private void BleCentrals_ListChanged(object? sender, LibUtils.Collections.ListMutationEventArgs<BleCentral> e)
+        private void BleCentrals_ListChanged(object? sender, ListMutationEventArgs<BleCentral> e)
         {
             foreach (var itemAdded in e.AddedItems)
             {
-                Application.Current.Dispatcher.Invoke(new Action(() => { DongleList.Add(itemAdded); }));
+                // Update the ObservableCollection on the UI thread.
+                Application.Current.Dispatcher.Invoke(() => DongleList.Add(itemAdded));
             }
 
             foreach (var itemRemoved in e.RemovedItems)
             {
-                Application.Current.Dispatcher.Invoke(new Action(() => { DongleList.Remove(itemRemoved); }));
+                // Update the ObservableCollection on the UI thread.
+                Application.Current.Dispatcher.Invoke(() => DongleList.Remove(itemRemoved));
             }
 
             SelectedDongle = DongleList.FirstOrDefault();
         }
 
-        private void Advertisers_ListChanged(object? sender, LibUtils.Collections.ListMutationEventArgs<BleAdvItem> e)
+        private void Advertisers_ListChanged(object? sender, ListMutationEventArgs<BleAdvItem> e)
         {
             foreach (var itemAdded in e.AddedItems)
             {
-                //Filter only Sylvac instrument
+                // Filter to keep only Sylvac instruments.
                 if (itemAdded.AdvertismentName.Contains("SY"))
                 {
-                    Application.Current.Dispatcher.Invoke(new Action(() => { InstrumentAdvertisingList.Add(itemAdded); }));
+                    Application.Current.Dispatcher.Invoke(() => InstrumentAdvertisingList.Add(itemAdded));
                 }
             }
 
             foreach (var itemRemoved in e.RemovedItems)
             {
-                Application.Current.Dispatcher.Invoke(new Action(() => { InstrumentAdvertisingList.Remove(itemRemoved); }));
+                Application.Current.Dispatcher.Invoke(() => InstrumentAdvertisingList.Remove(itemRemoved));
             }
         }
 
-        private void Peripherals_ListChanged(object? sender, LibUtils.Collections.ListMutationEventArgs<BlePeripheral> e)
+        private void Peripherals_ListChanged(object? sender, ListMutationEventArgs<BlePeripheral> e)
         {
             foreach (var itemAdded in e.AddedItems)
             {
-                Application.Current.Dispatcher.Invoke(new Action(() => { ConnectedInstrumentsList.Add(itemAdded); }));
+                Application.Current.Dispatcher.Invoke(() => ConnectedInstrumentsList.Add(itemAdded));
             }
 
             foreach (var itemRemoved in e.RemovedItems)
             {
-                Application.Current.Dispatcher.Invoke(new Action(() => { ConnectedInstrumentsList.Remove(itemRemoved); }));
+                Application.Current.Dispatcher.Invoke(() => ConnectedInstrumentsList.Remove(itemRemoved));
             }
         }
 
-        public SimpleCommand StartScanCommand { get; }
-        public SimpleCommand StopScanCommand { get; }
-        public SimpleCommand ClearScanCommand { get; }
-        public SimpleCommand ConnectInstrumentCommand { get; }
-        public SimpleCommand DisconnectInstrumentCommand { get; }
-
         private void StartScan()
         {
+            // Filter to receive only Sylvac-compatible advertisements.
             _bleManager.BleScanManager.SylvacOnly = true;
             _bleManager.BleScanManager.StartScan();
         }
@@ -140,12 +145,9 @@ namespace BluetoothExample
             }
         }
 
-        protected void NotifyPropertyChanged(string info)
+        protected void NotifyPropertyChanged(string propertyName)
         {
-            if (PropertyChanged != null)
-            {
-                PropertyChanged(this, new PropertyChangedEventArgs(info));
-            }
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
     }
 }

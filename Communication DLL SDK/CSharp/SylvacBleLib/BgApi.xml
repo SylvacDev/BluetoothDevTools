@@ -1,0 +1,536 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>BgApi</name>
+    </assembly>
+    <members>
+        <member name="T:BgApi.bd_addr">
+            <summary>
+            Bluetooth MAC address in little endian order.
+            </summary>
+        </member>
+        <member name="F:BgApi.bd_addr.MacSize">
+            <summary>
+            Length of a Bluetooth MAC address in bytes.
+            </summary>
+        </member>
+        <member name="M:BgApi.bd_addr.IsAnyAddress">
+            <summary>
+            <see langword="true"/> if this is 00:00:00:00:00:00, aka the "any" address.
+            </summary>
+            <remarks>
+            <seealso href="https://github.com/zephyrproject-rtos/zephyr/blob/zephyr-v3.1.0/include/zephyr/bluetooth/addr.h#L57-L58"/>
+            </remarks>
+        </member>
+        <member name="M:BgApi.bd_addr.IsNoneAddress">
+            <summary>
+            <see langword="true"/> if this is FF:FF:FF:FF:FF:FF, aka the "none" address.
+            </summary>
+            <remarks>
+            <seealso href="https://github.com/zephyrproject-rtos/zephyr/blob/zephyr-v3.1.0/include/zephyr/bluetooth/addr.h#L59-L61"/>
+            </remarks>
+        </member>
+        <member name="M:BgApi.bd_addr.IsDefined">
+            <summary>
+            <see langword="true"/> when this address is not <see cref="M:BgApi.bd_addr.IsAnyAddress"/> or <see cref="M:BgApi.bd_addr.IsNoneAddress"/>.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="P:BgApi.bd_addr.AnyAddress">
+            <summary>
+            "Any address", with all zeros: <c>00:00:00:00:00:00</c>.
+            </summary>
+        </member>
+        <member name="P:BgApi.bd_addr.NoneAddress">
+            <summary>
+            "None address", with all octets set to 0xFF: <c>FF:FF:FF:FF:FF:FF</c>.
+            </summary>
+        </member>
+        <member name="M:BgApi.bd_addr.FromLittleEndian(System.Byte,System.Byte,System.Byte,System.Byte,System.Byte,System.Byte)">
+            <summary>
+            Creates a MAC address from octets given in little endian order.
+            </summary>
+        </member>
+        <member name="M:BgApi.bd_addr.FromBigEndian(System.Byte,System.Byte,System.Byte,System.Byte,System.Byte,System.Byte)">
+            <summary>
+            Creates a MAC address from octets given in big endian order.
+            </summary>
+        </member>
+        <member name="M:BgApi.bd_addr.TryParse(System.String,BgApi.bd_addr@)">
+            <summary>
+            Parses a string representing a MAC address in big endian order
+            into a <see cref="T:BgApi.bd_addr"/>, which uses the little endian order
+            internally.
+            </summary>
+            <remarks>Use <see cref="M:BgApi.bd_addr.TryParseNullable(System.String,BgApi.bd_addr@)"/> if <paramref name="text"/> may be <see langword="null"/>.</remarks>
+            <param name="text">Non-null string representation of a MAC address in big endian order</param>
+            <param name="mac">Parsed MAC address</param>
+            <returns><see langword="true"/> if a MAC address has been parsed.</returns>
+        </member>
+        <member name="M:BgApi.bd_addr.TryParseNullable(System.String,BgApi.bd_addr@)">
+            <summary>
+            Parses a string into a MAC address like <see cref="M:BgApi.bd_addr.TryParse(System.String,BgApi.bd_addr@)"/>
+            but <paramref name="text"/> may be null.
+            </summary>
+            <param name="text">Nullable string representation of a MAC address in big endian order</param>
+            <param name="mac">Parsed MAC address</param>
+            <returns><see langword="true"/> if a MAC address has been parsed.</returns>
+        </member>
+        <member name="F:BgApi.BgConst.InvalidBondHandle">
+            <summary>
+            Represents a non-existing bonding or all bondings (official).
+            </summary>
+        </member>
+        <member name="F:BgApi.BgConst.InvalidConnHandle">
+            <summary>
+            Represents a non-existing connection (unofficial).
+            </summary>
+        </member>
+        <member name="F:BgApi.BgConst.InvalidAttHandle">
+            <summary>
+            Represents an invalid ATT handle.
+            </summary>
+        </member>
+        <member name="F:BgApi.BgConst.AttFirstHandle">
+            <summary>
+            First possible handle of the ATT attributes.
+            </summary>
+        </member>
+        <member name="F:BgApi.BgConst.AttLastHandle">
+            <summary>
+            Last possible handle of the ATT attributes.
+            </summary>
+        </member>
+        <member name="F:BgApi.BgConst.GattServiceGroupUuid">
+            <summary>
+            16-bit UUID of the GATT Service group.
+            </summary>
+        </member>
+        <member name="F:BgApi.ble_msg_gap_scan_response_evt_t.VarLenIndex">
+            <summary>
+            Index of the <see cref="F:BgApi.uint8array.len"/> byte of the <see cref="F:BgApi.ble_msg_gap_scan_response_evt_t.data"/> field.
+            </summary>
+        </member>
+        <member name="T:BgApi.ble_msg_btex_conn_get_phy_cmd_t">
+            @brief Sylvac extension 
+        </member>
+        <member name="T:BgApi.ble_msg_btex_conn_get_phy_rsp_t">
+            @brief Sylvac extension 
+        </member>
+        <member name="T:BgApi.ble_msg_btex_conn_set_phy_cmd_t">
+            @brief Sylvac extension 
+        </member>
+        <member name="T:BgApi.ble_msg_btex_conn_set_phy_rsp_t">
+            @brief Sylvac extension 
+        </member>
+        <member name="T:BgApi.ble_msg_btex_conn_phy_changed_evt_t">
+            @brief Sylvac extension 
+        </member>
+        <member name="T:BgApi.ble_msg_btex_sys_get_commit_date_rsp_t">
+            @brief Sylvac extension 
+        </member>
+        <member name="T:BgApi.BleHeader">
+            <summary>
+            Bluegiga API header.
+            </summary>
+        </member>
+        <member name="F:BgApi.BleHeader.BG_HEADER_SIZE">
+            <summary>
+            Header size in bytes.
+            </summary>
+        </member>
+        <member name="F:BgApi.BleHeader.BG_HEADER_TYPE_INDEX">
+            <summary>
+            Index of the Type field in the header.
+            </summary>
+        </member>
+        <member name="F:BgApi.BleHeader.BG_HEADER_LEN_INDEX">
+            <summary>
+            Index of the Length field in the header.
+            </summary>
+        </member>
+        <member name="F:BgApi.BleHeader.BG_HEADER_CLASS_INDEX">
+            <summary>
+            Index of the Class field in the header.
+            </summary>
+        </member>
+        <member name="F:BgApi.BleHeader.BG_HEADER_METHOD_INDEX">
+            <summary>
+            Index of the Method (command) field in the header.
+            </summary>
+        </member>
+        <member name="F:BgApi.BleHeader.type_hilen">
+            <summary>
+            Type field.
+            </summary>
+        </member>
+        <member name="F:BgApi.BleHeader.lolen">
+            <summary>
+            Length field, payload size.
+            </summary>
+        </member>
+        <member name="F:BgApi.BleHeader.cls">
+            <summary>
+            Class field.
+            </summary>
+        </member>
+        <member name="F:BgApi.BleHeader.command">
+            <summary>
+            Command field.
+            </summary>
+        </member>
+        <member name="M:BgApi.BleHeader.get_len(System.ReadOnlySpan{System.Byte})">
+            <summary>
+            Payload size.
+            </summary>
+        </member>
+        <member name="T:BgApi.FixedPayloadSize">
+            <summary>
+            Size of the fixed part of the payload, which is the minimum size of the payload.
+            </summary>
+            <remarks>
+            Based on the apis[] array in the cmd_def.c file from Bluegiga.
+            Equivalent to sizeof(ble_msg_xxx_yyy_cmd_t), which requires unsafe code
+            and seems to be unknown at compile time in C#.
+            </remarks>
+        </member>
+        <member name="T:BgApi.Gap.AdFlag">
+            <summary>
+            Advertising flag.
+            </summary>
+        </member>
+        <member name="F:BgApi.Gap.AdFlag.Limited">
+            <summary>
+            Limited Discoverable
+            </summary>
+        </member>
+        <member name="F:BgApi.Gap.AdFlag.General">
+            <summary>
+            General Discoverable
+            </summary>
+        </member>
+        <member name="F:BgApi.Gap.AdFlag.NoBrEdr">
+            <summary>
+            BR/EDR not supported
+            </summary>
+        </member>
+        <member name="T:BgApi.Gap.GapDataSize">
+            <summary>
+            Size of GAP data used in advertising, without the Type field.
+            </summary>
+        </member>
+        <member name="F:BgApi.Gap.GapDataSize.Flags">
+            <summary>
+            Size of a value of type <see cref="F:BgApi.Gap.GapDataType.FLAGS"/>.
+            </summary>
+        </member>
+        <member name="T:BgApi.Gap.GapDataType">
+            <summary>
+            GAP data type.
+            </summary>
+            <remarks>
+            Bluetooth-defined numbers are available on Bluetooth website in Assigned Numbers > Generic Access Profile:
+            https://btprodspecificationrefs.blob.core.windows.net/assigned-numbers/Assigned%20Number%20Types/Generic%20Access%20Profile.pdf
+            (neither in Core Specification 5.2 nor in the Core Supplement Specification 10) or in Zephyr source code:
+            https://github.com/zephyrproject-rtos/zephyr/blob/zephyr-v3.1.0/include/zephyr/bluetooth/gap.h#L28-L62
+            Enum items names are from Zephyr RTOS.
+            </remarks>
+        </member>
+        <member name="F:BgApi.Gap.GapDataType.FLAGS">
+            <summary>
+            AD flags
+            </summary>
+        </member>
+        <member name="F:BgApi.Gap.GapDataType.UUID16_SOME">
+            <summary>
+            16-bit UUID, more available
+            </summary>
+        </member>
+        <member name="F:BgApi.Gap.GapDataType.UUID16_ALL">
+            <summary>
+            16-bit UUID, all listed
+            </summary>
+        </member>
+        <member name="F:BgApi.Gap.GapDataType.UUID32_SOME">
+            <summary>
+            32-bit UUID, more available
+            </summary>
+        </member>
+        <member name="F:BgApi.Gap.GapDataType.UUID32_ALL">
+            <summary>
+            32-bit UUID, all listed
+            </summary>
+        </member>
+        <member name="F:BgApi.Gap.GapDataType.UUID128_SOME">
+            <summary>
+            128-bit UUID, more available
+            </summary>
+        </member>
+        <member name="F:BgApi.Gap.GapDataType.UUID128_ALL">
+            <summary>
+            128-bit UUID, all listed
+            </summary>
+        </member>
+        <member name="F:BgApi.Gap.GapDataType.NAME_SHORTENED">
+            <summary>
+            Shortened name
+            </summary>
+        </member>
+        <member name="F:BgApi.Gap.GapDataType.NAME_COMPLETE">
+            <summary>
+            Complete name
+            </summary>
+        </member>
+        <member name="F:BgApi.Gap.GapDataType.TX_POWER">
+            <summary>
+            Tx Power
+            </summary>
+        </member>
+        <member name="F:BgApi.Gap.GapDataType.SM_TK_VALUE">
+            <summary>
+            Security Manager TK Value
+            </summary>
+        </member>
+        <member name="F:BgApi.Gap.GapDataType.SM_OOB_FLAGS">
+            <summary>
+            Security Manager OOB Flags
+            </summary>
+        </member>
+        <member name="F:BgApi.Gap.GapDataType.SOLICIT16">
+            <summary>
+            Solicit UUIDs, 16-bit
+            </summary>
+        </member>
+        <member name="F:BgApi.Gap.GapDataType.SOLICIT128">
+            <summary>
+            Solicit UUIDs, 128-bit
+            </summary>
+        </member>
+        <member name="F:BgApi.Gap.GapDataType.SVC_DATA16">
+            <summary>
+            Service data, 16-bit UUID
+            </summary>
+        </member>
+        <member name="F:BgApi.Gap.GapDataType.GAP_APPEARANCE">
+            <summary>
+            GAP appearance
+            </summary>
+        </member>
+        <member name="F:BgApi.Gap.GapDataType.LE_BT_DEVICE_ADDRESS">
+            <summary>
+            LE Bluetooth Device Address
+            </summary>
+        </member>
+        <member name="F:BgApi.Gap.GapDataType.LE_ROLE">
+            <summary>
+            LE Role
+            </summary>
+        </member>
+        <member name="F:BgApi.Gap.GapDataType.SOLICIT32">
+            <summary>
+            Solicit UUIDs, 32-bit
+            </summary>
+        </member>
+        <member name="F:BgApi.Gap.GapDataType.SVC_DATA32">
+            <summary>
+            Service data, 32-bit UUID
+            </summary>
+        </member>
+        <member name="F:BgApi.Gap.GapDataType.SVC_DATA128">
+            <summary>
+            Service data, 128-bit UUID
+            </summary>
+        </member>
+        <member name="F:BgApi.Gap.GapDataType.LE_SC_CONFIRM_VALUE">
+            <summary>
+            LE SC Confirmation Value
+            </summary>
+        </member>
+        <member name="F:BgApi.Gap.GapDataType.LE_SC_RANDOM_VALUE">
+            <summary>
+            LE SC Random Value
+            </summary>
+        </member>
+        <member name="F:BgApi.Gap.GapDataType.URI">
+            <summary>
+            URI
+            </summary>
+        </member>
+        <member name="F:BgApi.Gap.GapDataType.LE_SUPPORTED_FEATURES">
+            <summary>
+            LE Supported Features
+            </summary>
+        </member>
+        <member name="F:BgApi.Gap.GapDataType.CHANNEL_MAP_UPDATE_IND">
+            <summary>
+            Channel Map Update Indication
+            </summary>
+        </member>
+        <member name="F:BgApi.Gap.GapDataType.MESH_PROV">
+            <summary>
+            Mesh Provisioning PDU
+            </summary>
+        </member>
+        <member name="F:BgApi.Gap.GapDataType.MESH_MESSAGE">
+            <summary>
+            Mesh Networking PDU
+            </summary>
+        </member>
+        <member name="F:BgApi.Gap.GapDataType.MESH_BEACON">
+            <summary>
+            Mesh Beacon
+            </summary>
+        </member>
+        <member name="F:BgApi.Gap.GapDataType.BIG_INFO">
+            <summary>
+            BIGInfo
+            </summary>
+        </member>
+        <member name="F:BgApi.Gap.GapDataType.BROADCAST_CODE">
+            <summary>
+            Broadcast Code
+            </summary>
+        </member>
+        <member name="F:BgApi.Gap.GapDataType.CSIS_RSI">
+            <summary>
+            CSIS Random Set ID type
+            </summary>
+        </member>
+        <member name="F:BgApi.Gap.GapDataType.MANUFACTURER_DATA">
+            <summary>
+            Manufacturer Specific Data
+            </summary>
+        </member>
+        <member name="T:BgApi.Interface.IConnHandleProvider">
+            <summary>
+            Connection handle provider.
+            </summary>
+        </member>
+        <member name="P:BgApi.Interface.IConnHandleProvider.ConnHandle">
+            <summary>
+            Connection handle.
+            </summary>
+        </member>
+        <member name="T:BgApi.Interface.IMacProvider">
+            <summary>
+            MAC address provider.
+            </summary>
+        </member>
+        <member name="P:BgApi.Interface.IMacProvider.Mac">
+            <summary>
+            MAC address.
+            </summary>
+        </member>
+        <member name="P:BgApi.Uuid.IUuid.Size">
+            <summary>
+            Size in bytes.
+            </summary>
+            <remarks>
+            Size is 2 bytes for 16-bit UUID, and 16 bytes for 128-bit UUID.
+            </remarks>
+        </member>
+        <member name="M:BgApi.Uuid.IUuid.IsEqualTo(System.ReadOnlySpan{System.Byte})">
+            <summary>
+            Returns <see langword="true"/> if this UUID is equal to a slice of bytes,
+            in little-endian order.
+            </summary>
+            <param name="slice">Bytes that may represent a UUID in little-endian order</param>
+        </member>
+        <member name="M:BgApi.Uuid.IUuid.IsEqualTo(BgApi.Uuid.IUuid)">
+            <summary>
+            Returns <see langword="true"/> if this UUID is equal to another UUID.
+            </summary>
+            <param name="other">UUID to compare</param>
+        </member>
+        <member name="M:BgApi.Uuid.IUuid.AsBytes">
+            <summary>
+            Gets a read-only span on the bytes of the UUID.
+            </summary>
+        </member>
+        <member name="T:BgApi.Uuid.Uuid128Le">
+            <summary>
+            128-bit UUID (GUID) stored in little endian order.
+            </summary>
+        </member>
+        <member name="F:BgApi.Uuid.Uuid128Le.Size">
+            <summary>
+            Size of a 128-bit UUID in bytes (16).
+            </summary>
+        </member>
+        <member name="M:BgApi.Uuid.Uuid128Le.#ctor(System.UInt32,System.UInt16,System.UInt16,System.UInt16,System.UInt64)">
+            <summary>
+            Constructs a 128-bit UUID given in format AAAAAAAA-BBBB-CCCC-DDDD-EEEEEEEEEEEE.
+            </summary>
+            <param name="a">32-bit part (AAAAAAAA-xxxx-xxxx-xxxx-xxxxxxxxxxxx)</param>
+            <param name="b">16-bit part (xxxxxxxx-BBBB-xxxx-xxxx-xxxxxxxxxxxx)</param>
+            <param name="c">16-bit part (xxxxxxxx-xxxx-CCCC-xxxx-xxxxxxxxxxxx)</param>
+            <param name="d">16-bit part (xxxxxxxx-xxxx-xxxx-DDDD-xxxxxxxxxxxx)</param>
+            <param name="e">56-bit part (xxxxxxxx-xxxx-xxxx-xxxx-EEEEEEEEEEEE)</param>
+        </member>
+        <member name="P:BgApi.Uuid.Uuid128Le.BgApi#Uuid#IUuid#Size">
+            <inheritdoc/>
+        </member>
+        <member name="P:BgApi.Uuid.Uuid128Le.Item(System.Int32)">
+            <summary>
+            Gets a byte of the UUID at a given index, in little endian order.
+            </summary>
+            <remarks>
+            With a UUID of the form A3A2A1A0-B1B0-C1C0-D1D0-E5E4E3E2E1E0,
+            index 0 will yield E0, index 1 E1, etc. until index 15 which
+            will yield A3.
+            </remarks>
+            <param name="index"></param>
+            <returns></returns>
+        </member>
+        <member name="M:BgApi.Uuid.Uuid128Le.AsBytes">
+            <inheritdoc/>
+        </member>
+        <member name="T:BgApi.Uuid.Uuid16Le">
+            <summary>
+            128-bit UUID (GUID) stored in little endian order.
+            </summary>
+        </member>
+        <member name="F:BgApi.Uuid.Uuid16Le.Size">
+            <summary>
+            Size of a 16-bit UUID in bytes (2).
+            </summary>
+        </member>
+        <member name="M:BgApi.Uuid.Uuid16Le.#ctor(System.Byte,System.Byte)">
+            <summary>
+            Builds a 16-bit UUID from 2 octets.
+            </summary>
+            <param name="msb">Most significant octet of the 16-bit UUID</param>
+            <param name="lsb">Least significant octet of the 16-bit UUID</param>
+        </member>
+        <member name="M:BgApi.Uuid.Uuid16Le.FromUuid128(BgApi.Uuid.Uuid128Le@)">
+            <summary>
+            Given a 128-bit UUID of the form xxxxAAAA-xxxx-xxxx-xxxx-xxxxxx,
+            builds a 16-bit UUID with the AAAA part.
+            </summary>
+            <param name="uuid128"></param>
+            <returns></returns>
+        </member>
+        <member name="P:BgApi.Uuid.Uuid16Le.BgApi#Uuid#IUuid#Size">
+            <inheritdoc/>
+        </member>
+        <member name="P:BgApi.Uuid.Uuid16Le.Value">
+            <summary>
+            Value in little endian order.
+            </summary>
+        </member>
+        <member name="M:BgApi.Uuid.Uuid16Le.GetValue">
+            <inheritdoc cref="M:LibUtils.Endianness.UInt16Le.GetValue"/>
+        </member>
+        <member name="M:BgApi.Uuid.Uuid16Le.IsEqualTo(System.ReadOnlySpan{System.Byte})">
+            <inheritdoc cref="M:LibUtils.Endianness.UInt16Le.IsEqualTo(System.ReadOnlySpan{System.Byte})"/>
+        </member>
+        <member name="M:BgApi.Uuid.Uuid16Le.AsBytes">
+            <inheritdoc/>
+        </member>
+        <member name="T:BgApi.Uuid.UuidBuilder">
+            <summary>
+            Builder for different kinds of UUIDs that implement <see cref="T:BgApi.Uuid.IUuid"/>.
+            </summary>
+        </member>
+    </members>
+</doc>

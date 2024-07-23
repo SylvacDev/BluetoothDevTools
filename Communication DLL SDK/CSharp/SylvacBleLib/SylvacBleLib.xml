@@ -1,0 +1,1480 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>SylvacBleLib</name>
+    </assembly>
+    <members>
+        <member name="M:SylvacBleLib.BleManager.#ctor(LayerCentral.Configuration.CentralLayerConfig)">
+            <param name="layerConfig">Configuration for the communication layers</param>
+        </member>
+        <member name="P:SylvacBleLib.BleManager.BleCentrals">
+            <summary>
+            List of Bluetooth centrals (dongles).
+            </summary>
+        </member>
+        <member name="P:SylvacBleLib.BleManager.BlePeripherals">
+            <summary>
+            List of Bluetooth peripherals.
+            </summary>
+        </member>
+        <member name="P:SylvacBleLib.BleManager.InitialConfiguration">
+            <summary>
+            Configuration for building <see cref="P:SylvacBleLib.BleManager.Instance"/>.
+            </summary>
+        </member>
+        <member name="M:SylvacBleLib.BleManager.InitLog(LogUtils.Logger.LogLevel)">
+            <summary>
+            Initializes the logging mechanism.
+            </summary>
+            <param name="logLevel">Log level filter</param>
+        </member>
+        <member name="M:SylvacBleLib.BleManager.SetSynchronizationContext(System.Threading.SynchronizationContext)">
+            <summary>
+            Sets a synchronization context in order to make it accessible with
+            <see cref="P:System.Threading.SynchronizationContext.Current"/> when receiving events
+            from this <see cref="T:SylvacBleLib.BleManager"/>.
+            </summary>
+            <param name="syncContext">Synchronization context</param>
+        </member>
+        <member name="M:SylvacBleLib.BleManager.SetInvoker(System.Action{System.Action})">
+            <inheritdoc cref="M:SylvacBleLib.Bt5LibManager.SetInvoker(System.Action{System.Action})"/>
+        </member>
+        <member name="M:SylvacBleLib.BleManager.Start">
+            <summary>
+            Starts the Bluetooth communication module.
+            </summary>
+        </member>
+        <member name="M:SylvacBleLib.BleManager.GetInternalSyncContext">
+            <inheritdoc cref="M:LayerStack.StackComposer.GetInternalSyncContext"/>
+        </member>
+        <member name="M:SylvacBleLib.BleManager.SuspendOperations">
+            <summary>
+            Disconnects all instruments and takes other appropriate actions when the system enters into sleep mode.
+            </summary>
+        </member>
+        <member name="M:SylvacBleLib.BleManager.ResumeOperations">
+            <summary>
+            Disconnects all instruments and takes other appropriate actions when the system resumes from sleep mode.
+            </summary>
+        </member>
+        <member name="T:SylvacBleLib.Bt5LibFacade">
+            <summary>
+            Exposes an API with function calls to interact with the C# Bluetooth DLL.
+            </summary>
+        </member>
+        <member name="M:SylvacBleLib.Bt5LibFacade.DispatchAppAction(System.Action)">
+            <summary>
+            Invokes an action from the message thread of the C# Bluetooth DLL.
+            </summary>
+            <param name="action">Action to run</param>
+            <remarks>
+            Do not wait in <paramref name="action"/>, or the message thread
+            of the C# Bluetooth DLL will be blocked until the wait
+            is finished.
+            As a consequence, if any code called by <paramref name="action"/>
+            waits on a message from the C# Bluetooth DLL, a deadlock will occur.
+            </remarks>
+        </member>
+        <member name="M:SylvacBleLib.Bt5LibFacade.AbortConnection(System.UInt16,System.UInt16)">
+            <summary>
+            Aborts an ongoing connection procedure.
+            </summary>
+            <param name="dongleNum">Dongle number</param>
+            <param name="attemptId">Connection attempt ID</param>
+            <remarks>The connection attempt ID can be retrieved in <see cref="P:LayerConnection.Messaging.Event.ConnectingEvt.AttemptId"/>.</remarks>
+        </member>
+        <member name="M:SylvacBleLib.Bt5LibFacade.ConnectDeviceByMac(System.UInt16,BgApi.bd_addr)">
+            <summary>
+            Connects a Bluetooth device to a dongle.
+            </summary>
+            <param name="dongleNum">Dongle number</param>
+            <param name="macAddress">Device MAC address</param>
+        </member>
+        <member name="M:SylvacBleLib.Bt5LibFacade.ConnectDeviceByMacNow(System.UInt16,BgApi.bd_addr,LayerConnection.Sylvac.BondMode)">
+            <summary>
+            Immediately starts a connection procedure to a device without receiving an advertising packet first.
+            </summary>
+            <remarks>If the device is not in range now, this will prevent other devices to connect during 30 seconds
+            due to timeout defined in <c>DongleCom.ConnectionTimeoutMs</c>.</remarks>
+            <param name="dongleNum">Dongle number</param>
+            <param name="macAddress">Device MAC address</param>
+            <param name="bondMode">Bond mode, deduced from advertising flags</param>
+        </member>
+        <member name="M:SylvacBleLib.Bt5LibFacade.DisconnectAll">
+            <summary>
+            Disconnects all Bluetooth devices from all dongles.
+            </summary>
+        </member>
+        <member name="M:SylvacBleLib.Bt5LibFacade.DisconnectAllFromDongle(System.UInt16)">
+            <summary>
+            Disconnects all Bluetooth devices from the given dongle.
+            </summary>
+            <param name="dongleNum">Dongle number</param>
+        </member>
+        <member name="M:SylvacBleLib.Bt5LibFacade.DisconnectDeviceByMac(System.UInt16,BgApi.bd_addr)">
+            <summary>
+            Disconnects a Bluetooth device from a dongle.
+            </summary>
+            <param name="dongleNum">Dongle number</param>
+            <param name="macAddress">Device MAC address</param>
+        </member>
+        <member name="M:SylvacBleLib.Bt5LibFacade.ProvokeDisconnection(System.UInt16,BgApi.bd_addr)">
+            <summary>
+            Provokes the disconnection of a Bluetooth device.
+            </summary>
+            <remarks>
+            If automatic reconnection is enabled, which is very likely to be the case
+            (for example if the connection was initiated with <see cref="M:SylvacBleLib.Bt5LibFacade.ConnectDeviceByMac(System.UInt16,BgApi.bd_addr)"/>),
+            an attempt to reconnect the device will be done automatically as soon
+            as the device is disconnected, like if the disconnection was due to a signal loss.
+            </remarks>
+            <param name="dongleNum">Dongle number</param>
+            <param name="macAddress">Device MAC address</param>
+        </member>
+        <member name="M:SylvacBleLib.Bt5LibFacade.RemoveMacToConnect(System.UInt16,BgApi.bd_addr)">
+            <summary>
+            Removes a MAC address from the list of MAC addresses to connect of a dongle.
+            </summary>
+            <remarks>
+            This function doesn't provoke a disconnection of the peripheral. It only removes
+            the peripheral MAC address from list of MAC addresses to "keep connected". As a consequence,
+            the peripheral won't be reconnected if it disconnects. 
+            This behavior is useful when using the <c>BT RST</c> command.
+            </remarks>
+            <param name="dongleNum">Dongle number</param>
+            <param name="macAddress">Peripheral MAC address</param>
+        </member>
+        <member name="M:SylvacBleLib.Bt5LibFacade.SetAttHandles(BgApi.bd_addr,LayerConnection.Sylvac.SmsAttHandles)">
+            <summary>
+            Sets cached ATT handles.
+            </summary>
+            <remarks>
+            The cached ATT handles will be used to skip services discovery in case
+            where the device and dongle are bonded and reconnect with each other.
+            </remarks>
+            <param name="macAddress">MAC address of the which to set the ATT handles</param>
+            <param name="attHandles"></param>
+        </member>
+        <member name="M:SylvacBleLib.Bt5LibFacade.UnsetAttHandles(BgApi.bd_addr)">
+            <summary>
+            Unsets the cached ATT handles associated with a MAC address.
+            </summary>
+            <remarks>
+            Cached ATT handles can be set manually with the <see cref="M:SylvacBleLib.Bt5LibFacade.SetAttHandles(BgApi.bd_addr,LayerConnection.Sylvac.SmsAttHandles)"/>
+            method. They are also generated automatically from within the C# communication DLL when discovering
+            a bonded device.
+            </remarks>
+            <param name="macAddress">MAC address of which to unset any cached ATT handle</param>
+        </member>
+        <member name="M:SylvacBleLib.Bt5LibFacade.SetPeripheralConfig(LayerCentral.Configuration.IBleMountConfig)">
+            <summary>
+            Sets a configuration that describes how to mount (connect, discover, subscribe to)
+            a Bluetooth peripheral.
+            </summary>
+            <param name="mountConfig">Peripheral configuration</param>
+        </member>
+        <member name="M:SylvacBleLib.Bt5LibFacade.UnsetPeripheralConfig(BgApi.bd_addr)">
+            <summary>
+            Unsets a configuration that describes how to mount (connect, discover, subscribe to)
+            a Bluetooth peripheral.
+            </summary>
+            <param name="mac">MAC address associated with the configuration to remove</param>
+        </member>
+        <member name="M:SylvacBleLib.Bt5LibFacade.SetConnParams(LayerConnection.Connectable.ConnectionId,LayerConnection.Connectable.SettableConnParams)">
+            <summary>
+            Updates the timing parameters of a connection.
+            </summary>
+            <param name="connId">Connection ID</param>
+            <param name="connParams">Connection parameters</param>
+        </member>
+        <member name="M:SylvacBleLib.Bt5LibFacade.GetCurrentPhy(LayerConnection.Connectable.ConnectionId)">
+            <summary>
+            Gets the PHY (modulation and coding schemes) of a connection.
+            </summary>
+            <param name="connId">Connection ID</param>
+        </member>
+        <member name="M:SylvacBleLib.Bt5LibFacade.SetCurrentPhy(LayerConnection.Connectable.ConnectionId,LayerConnection.Phy.BlePhy)">
+            <summary>
+            Sets the PHY (modulation and coding schemes) of a connection.
+            </summary>
+            <param name="connId">Connection ID</param>
+            <param name="phy">Connection PHY</param>
+        </member>
+        <member name="M:SylvacBleLib.Bt5LibFacade.ReadCharValue(System.UInt16,BgApi.bd_addr,BgApi.Uuid.IUuid)">
+            <summary>
+            Reads the value of a Bluetooth characteristic on an instrument.
+            </summary>
+            <param name="dongleNum">Dongle number</param>
+            <param name="macAddress">Instrument MAC address</param>
+            <param name="charUuid">Characteristic UUID</param>
+        </member>
+        <member name="M:SylvacBleLib.Bt5LibFacade.ReadDescriptorValue(System.UInt16,BgApi.bd_addr,BgApi.Uuid.Uuid16Le,BgApi.Uuid.IUuid)">
+            <summary>
+            Reads the value of a Bluetooth descriptor on an instrument.
+            </summary>
+            <param name="dongleNum">Dongle number</param>
+            <param name="macAddress">Instrument MAC address</param>
+            <param name="descUuid">Descriptor UUID</param>
+            <param name="charUuid">Characteristic UUID</param>
+        </member>
+        <member name="M:SylvacBleLib.Bt5LibFacade.WriteCccdValue(System.UInt16,BgApi.bd_addr,BgApi.Uuid.IUuid,LayerConnection.GattClient.CccSub)">
+            <summary>
+            Writes the value of a CCC descriptor onto an instrument.
+            </summary>
+            <param name="dongleNum">Dongle number</param>
+            <param name="macAddress">Instrument MAC address</param>
+            <param name="charUuid">Characteristic UUID</param>
+            <param name="value">Value</param>
+        </member>
+        <member name="M:SylvacBleLib.Bt5LibFacade.SendRetroCommand(System.UInt16,BgApi.bd_addr,System.String)">
+            <summary>
+            Sends a retrocommand to an instrument.
+            </summary>
+            <param name="dongleNum">Dongle number</param>
+            <param name="macAddress">Instrument MAC address</param>
+            <param name="trimmedCommand">Command without trailing carriage return</param>
+        </member>
+        <member name="M:SylvacBleLib.Bt5LibFacade.SendFullCommand(System.UInt16,BgApi.bd_addr,System.String)">
+            <summary>
+            Sends a retrocommand as is, without adding any carriage return, to an instrument.
+            </summary>
+            <param name="dongleNum">Dongle number</param>
+            <param name="macAddress">Instrument MAC address</param>
+            <param name="fullCommand">Command to send as is</param>
+        </member>
+        <member name="M:SylvacBleLib.Bt5LibFacade.ConnectDongle(System.String)">
+            <summary>
+            Attempts to connect a Bluetooth dongle (Bluegiga or Zephyr) on a port identified by its name.
+            </summary>
+            <param name="portName">Port name, starting with "COM" on Windows</param>
+        </member>
+        <member name="M:SylvacBleLib.Bt5LibFacade.ReadBondMacs(System.UInt16)">
+            <summary>
+            Attempts to read MAC addresses that are bonded to a dongle.
+            </summary>
+            <remarks>
+            Response transmitted via <see cref="T:LayerConnection.Messaging.Event.BondMacAddedEvt"/>, which can be
+            received with <see cref="M:SylvacBleLib.Bt5LibFacade.SubscribeToDongleEvt(System.Action{LayerConnection.Messaging.Event.IDongleEvt})"/>.
+            </remarks>
+            <param name="dongleNum">Dongle number</param>
+        </member>
+        <member name="M:SylvacBleLib.Bt5LibFacade.GetInitialBondList(System.UInt16)">
+            <summary>
+            Gets the list of existing bonds retrieved from the dongle during initialization.
+            </summary>
+            <param name="dongleNum">Dongle number</param>
+        </member>
+        <member name="M:SylvacBleLib.Bt5LibFacade.RemoveAllBonds(System.UInt16)">
+            <summary>
+            Removes all bonds recorded on a dongle.
+            </summary>
+            <param name="dongleNum">Dongle number</param>
+        </member>
+        <member name="M:SylvacBleLib.Bt5LibFacade.RemoveBond(System.UInt16,BgApi.bd_addr)">
+            <summary>
+            Removes a bond with the given MAC address from a dongle.
+            </summary>
+            <param name="dongleNum">Dongle number</param>
+            <param name="mac">MAC address of which to remove the bond</param>
+        </member>
+        <member name="M:SylvacBleLib.Bt5LibFacade.ResetDongle(System.UInt16)">
+            <summary>
+            Disconnects all peripherals from a dongle and removes all of its bonds.
+            </summary>
+            <param name="dongleNum">Dongle number</param>
+        </member>
+        <member name="M:SylvacBleLib.Bt5LibFacade.SetScanParametersMs(System.UInt16,System.UInt16,System.UInt16)">
+            <summary>
+            Sets scan parameters in milliseconds to a dongle.
+            </summary>
+            <param name="dongleNum">Dongle number</param>
+            <param name="scanWindowMs">Scan interval in milliseconds</param>
+            <param name="scanIntervalMs">Scan window in milliseconds</param>
+        </member>
+        <member name="M:SylvacBleLib.Bt5LibFacade.StartManualScanOnDongle(System.UInt16)">
+            <summary>
+            Starts manual scan on a dongle.
+            </summary>
+            <param name="dongleNum">Dongle number</param>
+        </member>
+        <member name="M:SylvacBleLib.Bt5LibFacade.StopManualScanOnDongle(System.UInt16)">
+            <summary>
+            Stops manual scan on a dongle.
+            </summary>
+            <param name="dongleNum">Dongle number</param>
+        </member>
+        <member name="M:SylvacBleLib.Bt5LibFacade.StartObserveBondStatus(BgApi.bd_addr)">
+            <summary>
+            Start observing bond status of an advertising device.
+            </summary>
+            <param name="mac">Advertiser MAC address</param>
+        </member>
+        <member name="M:SylvacBleLib.Bt5LibFacade.StopObserveBondStatus(BgApi.bd_addr)">
+            <summary>
+            Stop observing bond status of an advertising device.
+            </summary>
+            <param name="mac">Advertiser MAC address</param>
+        </member>
+        <member name="F:SylvacBleLib.Bt5LibManager._invoker">
+            <summary>
+            Allows to receive the messages that come from the DLL on
+            another thread than the internal event loop.
+            </summary>
+        </member>
+        <member name="P:SylvacBleLib.Bt5LibManager.DisposeDirectly">
+            <summary>
+            <see langword="true"/> to execute the cleanup operations
+            from the thread that calls <see cref="M:SylvacBleLib.Bt5LibManager.Dispose"/>.
+            <see langword="false"/> to execute the cleanup operations
+            with <see cref="F:SylvacBleLib.Bt5LibManager._invoker"/> (default).
+            </summary>
+            <remarks>
+            This is useful when <see cref="F:SylvacBleLib.Bt5LibManager._invoker"/> is not available
+            anymore when <see cref="M:SylvacBleLib.Bt5LibManager.Dispose"/> is called, typically if
+            <see cref="F:SylvacBleLib.Bt5LibManager._invoker"/> relies on the UI dispatcher and the UI
+            is already closed when <see cref="M:SylvacBleLib.Bt5LibManager.Dispose"/> is called.
+            </remarks>
+        </member>
+        <member name="M:SylvacBleLib.Bt5LibManager.BuildDefaultLayerConfig">
+            <summary>
+            Builds a <see cref="T:LayerCentral.Configuration.CentralLayerConfig"/> with default values.
+            </summary>
+            <returns>New instance of <see cref="T:LayerCentral.Configuration.CentralLayerConfig"/>.</returns>
+        </member>
+        <member name="M:SylvacBleLib.Bt5LibManager.BuildDefaultMountConfig">
+            <summary>
+            Builds a <see cref="T:LayerCentral.Configuration.IBleMountConfig"/> with default values.
+            </summary>
+            <returns>New instance of <see cref="T:LayerCentral.Configuration.DeviceMountConfig"/>.</returns>
+        </member>
+        <member name="M:SylvacBleLib.Bt5LibManager.SetInvoker(System.Action{System.Action})">
+            <summary>
+            Sets an "invoker" to receive events on another thread than the internal event loop.
+            </summary>
+            <remarks>
+            Typically pass 'App.Current.Dispatcher.BeginInvoke' in order to receive
+            events on the UI thread.
+            </remarks>
+            <param name="invoker"><see cref="T:System.Action"/> that calls another <see cref="T:System.Action"/></param>
+        </member>
+        <member name="M:SylvacBleLib.Bt5LibManager.SetSynchronizationContext(System.Threading.SynchronizationContext)">
+            <summary>
+            Sets the synchronization context of the events loop thread,
+            in order to make it accessible via <see cref="P:System.Threading.SynchronizationContext.Current"/>
+            when receiving events on that thread.
+            </summary>
+            <param name="syncContext">Synchronization context</param>
+        </member>
+        <member name="M:SylvacBleLib.Bt5LibManager.LoopDllEvents">
+            <summary>
+            Internal events loop.
+            </summary>
+        </member>
+        <member name="M:SylvacBleLib.Bt5LibManager.DelayAppAction(System.Action)">
+            <summary>
+            Allows to execute an action on the same thread as the events that
+            come from the C# Bluetooth DLL.
+            </summary>
+            <param name="appAction">Action to delay</param>
+        </member>
+        <member name="M:SylvacBleLib.Bt5LibManager.DispatchWeakCallback(LayerCommons.Messaging.InternalMessage.WeakCallbackMsg)">
+            <summary>
+            Allows to execute a callback on the same thread as the events that
+            come from the C# Bluetooth DLL, at the condition that a <see cref="T:System.WeakReference"/>
+            is still valid.
+            </summary>
+            <param name="weakCallback">Weak callback to delay</param>
+        </member>
+        <member name="M:SylvacBleLib.Bt5LibManager.DisposeEvents">
+            <summary>
+            Disposes the events in <see cref="F:SylvacBleLib.Bt5LibManager._events"/>.
+            </summary>
+        </member>
+        <member name="E:SylvacBleLib.Central.BleCentral.BondedMacsListChanged">
+            <summary>
+            Raised when <see cref="P:SylvacBleLib.Central.BleCentral.BondedMacs"/> changes.
+            </summary>
+        </member>
+        <member name="E:SylvacBleLib.Central.BleCentral.PeripheralsListChanged">
+            <summary>
+            Raised when <see cref="P:SylvacBleLib.Central.BleCentral.Peripherals"/> changes.
+            </summary>
+        </member>
+        <member name="P:SylvacBleLib.Central.BleCentral.Mac">
+            <inheritdoc cref="P:BgApi.Interface.IMacProvider.Mac"/>
+        </member>
+        <member name="P:SylvacBleLib.Central.BleCentral.DongleNum">
+            <inheritdoc cref="P:LayerConnection.Dongle.IDongleInfoProvider.DongleNum"/>
+        </member>
+        <member name="P:SylvacBleLib.Central.BleCentral.MacAddress">
+            <inheritdoc cref="P:LayerConnection.Dongle.IDongleInfoProvider.MacAddress"/>
+        </member>
+        <member name="P:SylvacBleLib.Central.BleCentral.PortName">
+            <inheritdoc cref="P:LayerConnection.Dongle.IDongleInfoProvider.PortName"/>
+        </member>
+        <member name="P:SylvacBleLib.Central.BleCentral.VidPid">
+            <inheritdoc cref="P:LayerConnection.Dongle.IDongleInfoProvider.VidPid"/>
+        </member>
+        <member name="P:SylvacBleLib.Central.BleCentral.Version">
+            <inheritdoc cref="P:LayerConnection.Dongle.IDongleInfoProvider.Version"/>
+        </member>
+        <member name="P:SylvacBleLib.Central.BleCentral.MaxConn">
+            <inheritdoc cref="P:LayerConnection.Dongle.IDongleInfoProvider.MaxConn"/>
+        </member>
+        <member name="P:SylvacBleLib.Central.BleCentral.IsFull">
+            <summary>
+            <see langword="true"/> when the maximum number of assigned peripherals has been reached.
+            </summary>
+        </member>
+        <member name="P:SylvacBleLib.Central.BleCentral.IsBondingFull">
+            <summary>
+            <see langword="true"/> when the maximum number of bonded peripherals has been reached.
+            </summary>
+        </member>
+        <member name="P:SylvacBleLib.Central.BleCentral.BondedMacs">
+            <summary>
+            Bonded MAC addresses.
+            </summary>
+        </member>
+        <member name="P:SylvacBleLib.Central.BleCentral.IsBondedListComplete">
+            <summary>
+            <see langword="true"/> when <see cref="P:SylvacBleLib.Central.BleCentral.BondedMacs"/> contains all the existing bonded addresses.
+            </summary>
+        </member>
+        <member name="M:SylvacBleLib.Central.BleCentral.AssignPeripheral(BgApi.bd_addr,SylvacBleLib.Peripheral.BlePeripheral@,LibUtils.Results.CreationResult@)">
+            <summary>
+            Assigns a Bluetooth peripheral to this Bluetooth central.
+            </summary>
+            <param name="peripheralMac">Peripheral MAC</param>
+            <param name="blePeripheral">Peripheral assigned to this dongle, if any</param>
+            <param name="creationResult">Whether the peripheral has been created or did already exist</param>
+            <returns><see langword="true"/> if the Bluetooth peripheral identified by <paramref name="peripheralMac"/>
+            has been assigned to this dongle.</returns>
+        </member>
+        <member name="M:SylvacBleLib.Central.BleCentral.AssignPeripheral(BgApi.bd_addr,SylvacBleLib.Peripheral.BlePeripheral@)">
+            <inheritdoc cref="M:SylvacBleLib.Central.BleCentral.AssignPeripheral(BgApi.bd_addr,SylvacBleLib.Peripheral.BlePeripheral@,LibUtils.Results.CreationResult@)"/>
+        </member>
+        <member name="M:SylvacBleLib.Central.BleCentral.UnassignPeripheral(SylvacBleLib.Peripheral.BlePeripheral)">
+            <summary>
+            Unassign a Bluetooth peripheral from this central.
+            </summary>
+            <param name="peripheral">Peripheral to unassign</param>
+            <returns><see langword="true"/> if <paramref name="peripheral"/> was assigned to this central.</returns>
+        </member>
+        <member name="M:SylvacBleLib.Central.BleCentral.StartConnect(BgApi.bd_addr,SylvacBleLib.Peripheral.BlePeripheral@)">
+            <summary>
+            Starts to connect a Bluetooth peripheral to this Bluetooth central.
+            </summary>
+            <param name="peripheralMac">Peripheral MAC</param>
+            <param name="blePeripheral">Peripheral assigned to this dongle, if any</param>
+            <remarks>
+            The connection procedure can be followed with <see cref="P:SylvacBleLib.Peripheral.BlePeripheral.ConnectionStep"/>.
+            </remarks>
+            <returns><see langword="true"/> if a connection procedure has been started for <paramref name="blePeripheral"/>.</returns>
+        </member>
+        <member name="M:SylvacBleLib.Central.BleCentral.StartConnectNow(BgApi.bd_addr,SylvacBleLib.Peripheral.BlePeripheral@,LayerConnection.Sylvac.BondMode)">
+            <summary>
+            Immediately starts a connection procedure with a Bluetooth peripheral without receiving an advertising packet first.
+            </summary>
+            <remarks>If the device is not in range now, this will prevent other devices to connect during 30 seconds
+            due to timeout defined in <c>DongleCom.ConnectionTimeoutMs</c>.</remarks>
+            <param name="peripheralMac">Peripheral MAC</param>
+            <param name="blePeripheral">Peripheral assigned to this dongle, if any</param>
+            <param name="bondMode">Bond mode or <see cref="F:LayerConnection.Sylvac.BondMode.Undefined"/> to not start a connection procedure immediately,
+            like calling <see langword="as"/><see cref="M:SylvacBleLib.Central.BleCentral.StartConnect(BgApi.bd_addr,SylvacBleLib.Peripheral.BlePeripheral@)"/></param>
+            <returns><see langword="true"/> if a connection procedure has been started for <paramref name="blePeripheral"/>.</returns>
+        </member>
+        <member name="M:SylvacBleLib.Central.BleCentral.StartDisconnect(BgApi.bd_addr)">
+            <summary>
+            Starts to disconnect a Bluetooth peripheral from this Bluetooth central.
+            </summary>
+            <param name="peripheralMac">Peripheral MAC address</param>
+        </member>
+        <member name="M:SylvacBleLib.Central.BleCentral.RemovePeripheral(SylvacBleLib.Peripheral.BlePeripheral)">
+            <summary>
+            Disconnects a Bluetooth peripheral and removes it.
+            </summary>
+            <remarks>
+            Removes the peripheral from the <see cref="P:SylvacBleLib.Central.BleCentral.Peripherals"/>
+            and <see cref="P:SylvacBleLib.Peripheral.BlePeripheralManager.BlePeripherals"/> lists.
+            </remarks>
+            <param name="blePeripheral">Peripheral to remove</param>
+        </member>
+        <member name="M:SylvacBleLib.Central.BleCentral.DeleteBond(BgApi.bd_addr)">
+            <summary>
+            Deletes bond of a peripheral (instrument) on the central (dongle).
+            </summary>
+        </member>
+        <member name="M:SylvacBleLib.Central.BleCentral.ResetConnections">
+            <summary>
+            Deletes all bonds and disconnects all peripherals from this central.
+            </summary>
+        </member>
+        <member name="T:SylvacBleLib.Connections.ConnectionStep">
+            <summary>
+            Connection step of a Bluetooth instrument.
+            </summary>
+        </member>
+        <member name="F:SylvacBleLib.Connections.ConnectionStep.None">
+            <summary>
+            Not connected.
+            </summary>
+        </member>
+        <member name="F:SylvacBleLib.Connections.ConnectionStep.Established">
+            <summary>
+            20% connected: Bluetooth connection established.
+            </summary>
+        </member>
+        <member name="F:SylvacBleLib.Connections.ConnectionStep.Discovering">
+            <summary>
+            40% connected: discovering services.
+            </summary>
+        </member>
+        <member name="F:SylvacBleLib.Connections.ConnectionStep.Discovered">
+            <summary>
+            60% connected: discovered services.
+            </summary>
+        </member>
+        <member name="F:SylvacBleLib.Connections.ConnectionStep.Subscribing">
+            <summary>
+            80% connected: subscribing to characteristics.
+            </summary>
+        </member>
+        <member name="F:SylvacBleLib.Connections.ConnectionStep.Subscribed">
+            <summary>
+            100% connected: subscribed to characteristics.
+            </summary>
+        </member>
+        <member name="T:SylvacBleLib.LibInfo">
+            <summary>
+            Library information.
+            </summary>
+        </member>
+        <member name="P:SylvacBleLib.LibInfo.Version">
+            <summary>
+            Library version.
+            </summary>
+        </member>
+        <member name="P:SylvacBleLib.LibInfo.VersionString">
+            <summary>
+            Library version in string format.
+            </summary>
+        </member>
+        <member name="F:SylvacBleLib.Measuring.Constant.MmPerIn">
+            <summary>
+            Millimeter per inch (25.4 mm/in).
+            </summary>
+        </member>
+        <member name="T:SylvacBleLib.Measuring.MeasuringParams">
+            <summary>
+            Measuring parameters such as unit and resolution.
+            </summary>
+        </member>
+        <member name="P:SylvacBleLib.Measuring.MeasuringParams.MeasuringMode">
+            <summary>
+            Instrument measuring mode (Normal, Min, Max, Delta).
+            </summary>
+        </member>
+        <member name="P:SylvacBleLib.Measuring.MeasuringParams.NumericalResolution">
+            <summary>
+            Instrument resolution.
+            </summary>
+        </member>
+        <member name="P:SylvacBleLib.Measuring.MeasuringParams.ResolutionClass">
+            <summary>
+            Instrument resolution class.
+            </summary>
+        </member>
+        <member name="P:SylvacBleLib.Measuring.MeasuringParams.Unit">
+            <summary>
+            Instrument unit, given by the <c>SDS Parameters</c> characteristic.
+            </summary>
+        </member>
+        <member name="P:SylvacBleLib.Measuring.MeasuringParams.SdsMesCoeff">
+            <summary>
+            Coefficient to calculate <see cref="P:SylvacBleLib.Peripheral.BlePeripheral.NumericalValue"/> in the local <see cref="P:SylvacBleLib.Measuring.MeasuringParams.Unit"/>.
+            </summary>
+        </member>
+        <member name="M:SylvacBleLib.Measuring.MeasuringParams.CalculateMesCoeff(BluetoothSig.AssignedNumbers.Units,System.Int32,LayerConnection.Sylvac.SdsUnit)">
+            <summary>
+            Calculates a floating point coefficient in order to express the SDS Measurement
+            value into the unit given by the SDS Parameters.
+            </summary>
+            <param name="inputUnit">Unit given by CPF descriptor</param>
+            <param name="tenExponent">Exponent value given by the CPF descriptor</param>
+            <param name="outputUnit">Unit given by the SDS Parameters value</param>
+            <returns>Coefficient that can be used to multiply the SDS Measurement value
+            to express it in the unit of SDS Parameters.</returns>
+        </member>
+        <member name="M:SylvacBleLib.Measuring.MeasuringParams.CalculateNumericalResolution(LayerConnection.Sylvac.SdsUnit,LayerConnection.Sylvac.SdsResolution)">
+            <summary>
+            Calculates the numerical resolution for a resolution class and a unit.
+            </summary>
+        </member>
+        <member name="F:SylvacBleLib.Peripheral.BlePeripheral.ConnectionTimeoutMs">
+            <summary>
+            Connection timeout in milliseconds.
+            </summary>
+            <remarks>
+            Includes services discovery and subscription to characteristics.
+            </remarks>
+        </member>
+        <member name="F:SylvacBleLib.Peripheral.BlePeripheral.DisconnectionTimeoutMs">
+            <summary>
+            Disconnection timeout in milliseconds.
+            </summary>
+        </member>
+        <member name="F:SylvacBleLib.Peripheral.BlePeripheral.ResponseTimeoutMs">
+            <summary>
+            Response timeout in milliseconds.
+            </summary>
+        </member>
+        <member name="F:SylvacBleLib.Peripheral.BlePeripheral._commandSender">
+            <summary>
+            Manages a queue of commands to send to the instrument.
+            </summary>
+        </member>
+        <member name="F:SylvacBleLib.Peripheral.BlePeripheral._connectionStepAwaiters">
+            <summary>
+            Allows to await a particular value of <see cref="P:SylvacBleLib.Peripheral.BlePeripheral.ConnectionStep"/> asynchronously.
+            </summary>
+        </member>
+        <member name="F:SylvacBleLib.Peripheral.BlePeripheral._endOfFrame">
+            <summary>
+            End-of-frame string for values received on the SMS Response characteristic.
+            </summary>
+        </member>
+        <member name="F:SylvacBleLib.Peripheral.BlePeripheral._partialFrame">
+            <summary>
+            Incomplete frame, as delimited by <see cref="F:SylvacBleLib.Peripheral.BlePeripheral._endOfFrame"/>.
+            </summary>
+        </member>
+        <member name="F:SylvacBleLib.Peripheral.BlePeripheral._unusedSdsMes">
+            <summary>
+            Source value of <see cref="P:SylvacBleLib.Peripheral.BlePeripheral.NumericalValue"/> cached
+            when <see cref="P:SylvacBleLib.Peripheral.BlePeripheral.SdsMesFormat"/> is not available yet.
+            </summary>
+        </member>
+        <member name="F:SylvacBleLib.Peripheral.BlePeripheral._workaroundSdsParametersDone">
+            <summary>
+            <see langword="true"/> when the workaround for "SDS Parameters value not received" has been done.
+            </summary>
+            <seealso cref="M:SylvacBleLib.Peripheral.BlePeripheral.WorkaroundSdsParametersNotReceived"/>
+        </member>
+        <member name="F:SylvacBleLib.Peripheral.BlePeripheral._workaroundSdsFormatDone">
+            <summary>
+            <see langword="true"/> when the workaround for "SDS Measurement CPFD not received" has been done.
+            </summary>
+            <seealso cref="M:SylvacBleLib.Peripheral.BlePeripheral.WorkaroundSdsFormatNotReceived"/>
+        </member>
+        <member name="E:SylvacBleLib.Peripheral.BlePeripheral.ConnectionStepChanged">
+            <summary>
+            Connection status changed.
+            </summary>
+        </member>
+        <member name="E:SylvacBleLib.Peripheral.BlePeripheral.PairingStatusChanged">
+            <summary>
+            Pairing or bonding status changed.
+            </summary>
+        </member>
+        <member name="E:SylvacBleLib.Peripheral.BlePeripheral.IsConnectedChanged">
+            <summary>
+            Raised when <see cref="P:SylvacBleLib.Peripheral.BlePeripheral.IsConnected"/> changes.
+            </summary>
+            <remarks>
+            <see cref="E:SylvacBleLib.Peripheral.BlePeripheral.ConnectionStepChanged"/> provides finer connection status changes.
+            </remarks>
+        </member>
+        <member name="E:SylvacBleLib.Peripheral.BlePeripheral.ConnectionParamsChanged">
+            <summary>
+            Raised when connection parameters change.
+            </summary>
+        </member>
+        <member name="E:SylvacBleLib.Peripheral.BlePeripheral.InstrumentResponseReceived">
+            <summary>
+            Value received from the instrument, for example as a response to a retrocommand.
+            </summary>
+            <remarks>
+            Provides the value changes of the <see cref="P:SylvacBleLib.Peripheral.BlePeripheral.SmsResp"/> property.
+            </remarks>
+        </member>
+        <member name="E:SylvacBleLib.Peripheral.BlePeripheral.InstrumentButtonPressed">
+            <summary>
+            Value received when pressing the Data button on the instrument.
+            </summary>
+            <remarks>
+            Provides the value changes of the <see cref="P:SylvacBleLib.Peripheral.BlePeripheral.SmsData"/> property.
+            </remarks>
+        </member>
+        <member name="E:SylvacBleLib.Peripheral.BlePeripheral.NumericalValueChanged">
+            <summary>
+            Value received when moving the instrument.
+            </summary>
+            <remarks>
+            Provides the value changes of the <see cref="P:SylvacBleLib.Peripheral.BlePeripheral.NumericalValue"/> property.
+            </remarks>
+        </member>
+        <member name="E:SylvacBleLib.Peripheral.BlePeripheral.CentralToConnectChanged">
+            <summary>
+            Raised when the central (dongle) instance to which this peripheral is assigned changes.
+            </summary>
+        </member>
+        <member name="E:SylvacBleLib.Peripheral.BlePeripheral.CentralToConnectMacChanged">
+            <summary>
+            Raised when the central (dongle) to which this peripheral is assigned changes.
+            </summary>
+        </member>
+        <member name="P:SylvacBleLib.Peripheral.BlePeripheral.DefaultEndOfFrame">
+            <summary>
+            Default end-of-frame character for SMS Response.
+            </summary>
+        </member>
+        <member name="P:SylvacBleLib.Peripheral.BlePeripheral.Mac">
+            <inheritdoc cref="P:BgApi.Interface.IMacProvider.Mac"/>
+        </member>
+        <member name="P:SylvacBleLib.Peripheral.BlePeripheral.MacAddress">
+            <summary>
+            MAC address in string format, without colons between numbers.
+            </summary>
+        </member>
+        <member name="P:SylvacBleLib.Peripheral.BlePeripheral.CentralToConnectMac">
+            <summary>
+            MAC address of the last dongle to which this peripheral was assigned.
+            </summary>
+            <remarks>
+            Remains defined even when the dongle is unplugged. Check <see cref="P:SylvacBleLib.Peripheral.BlePeripheral.CentralToConnectMac"/>
+            for <see langword="null"/> to determine whether the assigned central (dongle) is currently available.
+            </remarks>
+        </member>
+        <member name="P:SylvacBleLib.Peripheral.BlePeripheral.CentralToConnect">
+            <summary>
+            Dongle to which this peripheral is assigned.
+            </summary>
+            <remarks>
+            Becomes <see langword="null"/> when the dongle is unplugged.
+            Use <see cref="P:SylvacBleLib.Peripheral.BlePeripheral.CentralToConnectMac"/> to keep track of the last assigned central (dongle).
+            </remarks>
+        </member>
+        <member name="P:SylvacBleLib.Peripheral.BlePeripheral.PairingStatus">
+            <inheritdoc cref="T:LayerCentral.Peripheral.PairingStatus"/>
+        </member>
+        <member name="P:SylvacBleLib.Peripheral.BlePeripheral.ConnectionStep">
+            <summary>
+            Connection step.
+            </summary>
+        </member>
+        <member name="P:SylvacBleLib.Peripheral.BlePeripheral.IsDisconnected">
+            <summary>
+            <see langword="true"/> when disconnected.
+            </summary>
+        </member>
+        <member name="P:SylvacBleLib.Peripheral.BlePeripheral.IsConnecting">
+            <summary>
+            <see langword="true"/> when this peripheral is neither disconnected nor fully connected.
+            </summary>
+        </member>
+        <member name="P:SylvacBleLib.Peripheral.BlePeripheral.IsConnected">
+            <summary>
+            <see langword="true"/> when fully connected.
+            </summary>
+        </member>
+        <member name="P:SylvacBleLib.Peripheral.BlePeripheral.ConnectionParams">
+            <summary>
+            Actual connection parameters (read-only).
+            </summary>
+            <seealso cref="M:SylvacBleLib.Peripheral.BlePeripheral.SetConnectionParams(LayerConnection.Connectable.SettableConnParams)"/>
+        </member>
+        <member name="P:SylvacBleLib.Peripheral.BlePeripheral.IsPaired">
+            <summary>
+            <see langword="true"/> when the connection is paired.
+            </summary>
+        </member>
+        <member name="P:SylvacBleLib.Peripheral.BlePeripheral.SmsData">
+            <summary>
+            Last value received from the SMS Data characteristic.
+            </summary>
+            <remarks>Value changes can be received with <see cref="E:SylvacBleLib.Peripheral.BlePeripheral.InstrumentButtonPressed"/>.</remarks>
+        </member>
+        <member name="P:SylvacBleLib.Peripheral.BlePeripheral.SmsResp">
+            <summary>
+            Last value received from the SMS Response characteristic.
+            </summary>
+            <remarks>Value changes can be received with <see cref="E:SylvacBleLib.Peripheral.BlePeripheral.InstrumentResponseReceived"/>.</remarks>
+        </member>
+        <member name="P:SylvacBleLib.Peripheral.BlePeripheral.NumericalValue">
+            <summary>
+            Instrument value.
+            </summary>
+            <remarks>Value changes can be received with <see cref="E:SylvacBleLib.Peripheral.BlePeripheral.NumericalValueChanged"/>.</remarks>
+        </member>
+        <member name="P:SylvacBleLib.Peripheral.BlePeripheral.MeasurementParams">
+            <summary>
+            Measuring parameters.
+            </summary>
+        </member>
+        <member name="P:SylvacBleLib.Peripheral.BlePeripheral.SdsMesFormat">
+            <summary>
+            Format of the SDS Measurement characteristic.
+            </summary>
+        </member>
+        <member name="P:SylvacBleLib.Peripheral.BlePeripheral.AutoReassign">
+            <summary>
+            Auto-reassign this peripheral to another central (dongle) when the current central is removed.
+            </summary>
+            <remarks>
+            Only taken into account when not bonded, that is if <see cref="P:LayerCentral.Peripheral.PairingStatus.IsBonded"/>
+            is <see langword="false"/> at the time of dongle disconnection.
+            </remarks>
+        </member>
+        <member name="M:SylvacBleLib.Peripheral.BlePeripheral.DefineDisconnected(SylvacBleLib.Connections.ConnectionStep)">
+            <summary>
+            Defines the value of <see cref="P:SylvacBleLib.Peripheral.BlePeripheral.IsDisconnected"/> from <see cref="P:SylvacBleLib.Peripheral.BlePeripheral.ConnectionStep"/>.
+            </summary>
+            <param name="step">Connection step</param>
+            <returns>Value of <see cref="P:SylvacBleLib.Peripheral.BlePeripheral.IsDisconnected"/></returns>
+        </member>
+        <member name="M:SylvacBleLib.Peripheral.BlePeripheral.DefineIsConnecting(SylvacBleLib.Connections.ConnectionStep)">
+            <summary>
+            Defines the value of <see cref="P:SylvacBleLib.Peripheral.BlePeripheral.IsConnecting"/> from <see cref="P:SylvacBleLib.Peripheral.BlePeripheral.ConnectionStep"/>.
+            </summary>
+            <param name="step">Connection step</param>
+            <returns>Value of <see cref="P:SylvacBleLib.Peripheral.BlePeripheral.IsConnecting"/></returns>
+        </member>
+        <member name="M:SylvacBleLib.Peripheral.BlePeripheral.DefineIsConnected(SylvacBleLib.Connections.ConnectionStep)">
+            <summary>
+            Defines the value of <see cref="P:SylvacBleLib.Peripheral.BlePeripheral.IsConnected"/> from <see cref="P:SylvacBleLib.Peripheral.BlePeripheral.ConnectionStep"/>.
+            </summary>
+            <param name="step">Connection step</param>
+            <returns>Value of <see cref="P:SylvacBleLib.Peripheral.BlePeripheral.IsConnected"/></returns>
+        </member>
+        <member name="M:SylvacBleLib.Peripheral.BlePeripheral.UnassignFromCentral(SylvacBleLib.Central.BleCentral)">
+            <summary>
+            Unassigns this peripheral from a Bluetooth central (dongle).
+            </summary>
+            <param name="central">Central from which to unassign.</param>
+            <returns><see langword="true"/> if this peripheral was assigned to <paramref name="central"/></returns>
+        </member>
+        <member name="M:SylvacBleLib.Peripheral.BlePeripheral.TryGetDongleNum(System.UInt16@)">
+            <summary>
+            Tries to get the dongle number of <see cref="P:SylvacBleLib.Peripheral.BlePeripheral.CentralToConnect"/>.
+            </summary>
+            <param name="dongleNum">Dongle number</param>
+            <returns><see langword="true"/> if <paramref name="dongleNum"/> is valid, otherwise <see langword="false"/>.</returns>
+        </member>
+        <member name="M:SylvacBleLib.Peripheral.BlePeripheral.AwaitConnectionStepWithEx(SylvacBleLib.Connections.ConnectionStep,System.Int32,System.Threading.CancellationToken)">
+            <summary>
+            Returns a task that yields <see langword="true"/> if <see cref="P:SylvacBleLib.Peripheral.BlePeripheral.ConnectionStep"/>
+            has a certain value <paramref name="valueToAwait"/> within a certain timeout.
+            </summary>
+            <remarks>Like <see cref="M:SylvacBleLib.Peripheral.BlePeripheral.AwaitConnectionStep(SylvacBleLib.Connections.ConnectionStep,System.Int32,System.Threading.CancellationToken)"/> but throws
+            exceptions in case of failure instead of just returning a result.</remarks>
+            <param name="valueToAwait">Value to await</param>
+            <param name="timeoutMs">Timeout in milliseconds</param>
+            <param name="ct">Cancellation token</param>
+            <returns><see langword="true"/> if <see cref="P:SylvacBleLib.Peripheral.BlePeripheral.ConnectionStep"/> has the value within the time assigned.</returns>
+        </member>
+        <member name="M:SylvacBleLib.Peripheral.BlePeripheral.AwaitConnectionStep(SylvacBleLib.Connections.ConnectionStep,System.Int32,System.Threading.CancellationToken)">
+            <summary>
+            Awaits a certain value of <see cref="P:SylvacBleLib.Peripheral.BlePeripheral.ConnectionStep"/>.
+            </summary>
+            <param name="valuetoAwait">Value to await</param>
+            <param name="timeoutMs">Timeout in milliseconds</param>
+            <param name="ct">Cancellation token</param>
+            <returns><see langword="true"/> if <see cref="P:SylvacBleLib.Peripheral.BlePeripheral.ConnectionStep"/> has the value within the time assigned.</returns>
+        </member>
+        <member name="M:SylvacBleLib.Peripheral.BlePeripheral.ConnectAsync(System.Int32,System.Threading.CancellationToken)">
+            <summary>
+            Connects to <see cref="P:SylvacBleLib.Peripheral.BlePeripheral.CentralToConnect"/>.
+            </summary>
+            <param name="timeoutMs">Timeout in milliconds to connect, discover services and subscribe to characteristics</param>
+            <param name="ct">Cancellation token</param>
+            <returns>Task that yields the result of the connection procedure.</returns>
+        </member>
+        <member name="M:SylvacBleLib.Peripheral.BlePeripheral.ConnectAsync">
+            <inheritdoc cref="M:SylvacBleLib.Peripheral.BlePeripheral.ConnectAsync(System.Int32,System.Threading.CancellationToken)"/>
+        </member>
+        <member name="M:SylvacBleLib.Peripheral.BlePeripheral.ConnectAsync(System.Int32)">
+            <inheritdoc cref="M:SylvacBleLib.Peripheral.BlePeripheral.ConnectAsync(System.Int32,System.Threading.CancellationToken)"/>
+        </member>
+        <member name="M:SylvacBleLib.Peripheral.BlePeripheral.ConnectAsync(System.Threading.CancellationToken)">
+            <inheritdoc cref="M:SylvacBleLib.Peripheral.BlePeripheral.ConnectAsync(System.Int32,System.Threading.CancellationToken)"/>
+            <remarks>
+            Has a timeout of <see cref="F:SylvacBleLib.Peripheral.BlePeripheral.ConnectionTimeoutMs"/>.
+            To remove the timeout, call <see cref="M:SylvacBleLib.Peripheral.BlePeripheral.ConnectAsync(System.Int32,System.Threading.CancellationToken)"/>
+            with a timeout value of <see cref="F:System.Threading.Timeout.Infinite"/>.
+            </remarks>
+        </member>
+        <member name="M:SylvacBleLib.Peripheral.BlePeripheral.DisconnectAsync(System.Threading.CancellationToken)">
+            <summary>
+            Disconnects from <see cref="P:SylvacBleLib.Peripheral.BlePeripheral.CentralToConnect"/> and clears the commands queue.
+            </summary>
+            <param name="ct">Cancellation token</param>
+            <returns>Task that yields the result of the disconnection procedure.</returns>
+        </member>
+        <member name="M:SylvacBleLib.Peripheral.BlePeripheral.DisconnectAsync">
+            <inheritdoc cref="M:SylvacBleLib.Peripheral.BlePeripheral.DisconnectAsync(System.Threading.CancellationToken)"/>
+        </member>
+        <member name="M:SylvacBleLib.Peripheral.BlePeripheral.StartConnect">
+            <summary>
+            Starts to connect this peripheral to <see cref="P:SylvacBleLib.Peripheral.BlePeripheral.CentralToConnect"/>.
+            </summary>
+            <returns><see langword="true"/> if connection has been started.</returns>
+        </member>
+        <member name="M:SylvacBleLib.Peripheral.BlePeripheral.StartDisconnect">
+            <summary>
+            Starts to disconnect this peripheral from <see cref="P:SylvacBleLib.Peripheral.BlePeripheral.CentralToConnect"/>.
+            </summary>
+            <returns><see langword="true"/> if disconnection has been started.</returns>
+        </member>
+        <member name="M:SylvacBleLib.Peripheral.BlePeripheral.WorkaroundSdsParametersNotReceived">
+            <summary>
+            Workaround the SDS Parameters value not being received after instrument Bluetooth reset (<c>BTRST</c>).
+            </summary>
+            <remarks>
+            The problem is that sometimes (mostly when reconnecting a Bluetooth 4 instrument after
+            having sent the <c>BTRST</c> command to it), the value of SDS Parameters is not received.
+            This problem seems to be due to the instrument needing an additional delay before the
+            subscription to the SDS Parameters characteristic is performed.
+            
+            The workaround performed by <see cref="M:SylvacBleLib.Peripheral.BlePeripheral.WorkaroundSdsParametersNotReceived"/> consists in
+            unsubscribing and re-subscribing to the SDS Parameters characteristic when we receive a
+            SDS Measurement value but the SDS Parameters value is still undefined, AND the services
+            discovery and subscription is supposed to be finished.
+            </remarks>
+        </member>
+        <member name="M:SylvacBleLib.Peripheral.BlePeripheral.WorkaroundSdsFormatNotReceived">
+            <summary>
+            Workaround the SDS Measurement format value (CPFD) not being received after instrument
+            Bluetooth reset (<c>BTRST</c>).
+            </summary>
+            <remarks>
+            The problem is that sometimes (mostly when reconnecting a Bluetooth 4 instrument after
+            having sent the <c>BTRST</c> command to it), the value of SDS Measurement CPFD is not
+            received. This problem seems to be due to the instrument needing an additional delay
+            before the subscription to the SDS Parameters characteristic is performed.
+            
+            The workaround performed by <see cref="M:SylvacBleLib.Peripheral.BlePeripheral.WorkaroundSdsFormatNotReceived"/> consists in
+            re-reading the SDS Parameters characteristic when we receive a SDS Measurement value
+            but the SDS Parameters value is still undefined, AND the services discovery and subscription
+            is supposed to be finished.
+            </remarks>
+        </member>
+        <member name="M:SylvacBleLib.Peripheral.BlePeripheral.ProcessSdsMes(LibUtils.Endianness.Int32Le)">
+            <summary>
+            Processes Sylvac Simple Data Service (SDS) Measurement.
+            </summary>
+        </member>
+        <member name="M:SylvacBleLib.Peripheral.BlePeripheral.ProcessSdsPar(LibUtils.Endianness.UInt16Le)">
+            <summary>
+            Processes Sylvac Simple Data Service (SDS) Parameters.
+            </summary>
+        </member>
+        <member name="M:SylvacBleLib.Peripheral.BlePeripheral.ProcessSmsData(System.String)">
+            <summary>
+            Processes Sylvac Metrology Service (SMS) Data.
+            </summary>
+            <param name="value">Value received via GATT indication</param>
+        </member>
+        <member name="M:SylvacBleLib.Peripheral.BlePeripheral.ProcessSmsResp(System.Byte[])">
+            <summary>
+            Processes Sylvac Metrology Service (SMS) Response.
+            </summary>
+            <param name="data">Value received via GATT notification</param>
+        </member>
+        <member name="M:SylvacBleLib.Peripheral.BlePeripheral.SendCommand(System.String,System.Threading.CancellationToken)">
+            <summary>
+            Sens a command via the Sylvac Metrology Service (SMS) Request characteristic.
+            </summary>
+            <param name="trimmedCommand">Command without trailing carriage return</param>
+            <param name="ct">Cancellation token</param>
+        </member>
+        <member name="M:SylvacBleLib.Peripheral.BlePeripheral.SendCommand(System.String)">
+            <inheritdoc cref="M:SylvacBleLib.Peripheral.BlePeripheral.SendCommand(System.String,System.Threading.CancellationToken)"/>
+        </member>
+        <member name="M:SylvacBleLib.Peripheral.BlePeripheral.SendFullCommandAsync(System.String,System.Int32,System.Threading.CancellationToken)">
+            <summary>
+            Sends a command as is to the instrument, without adding any carriage return, and returns a task to await a response.
+            </summary>
+            <param name="fullCommand">Command already containing a carriage return if relevant</param>
+            <param name="timeoutMs">Timeout to receive a response in milliseconds</param>
+            <param name="ct">Cancellation token</param>
+            <returns>Task that can be awaited for a response.</returns>
+        </member>
+        <member name="M:SylvacBleLib.Peripheral.BlePeripheral.SendCommandAsync(System.String,System.Int32,System.Threading.CancellationToken)">
+            <inheritdoc cref="M:SylvacBleLib.Peripheral.BlePeripheral.SendAwaitResponse(System.String,System.Int32,System.Threading.CancellationToken)"/>
+        </member>
+        <member name="M:SylvacBleLib.Peripheral.BlePeripheral.SendCommandAsync(System.String)">
+            <see cref="M:SylvacBleLib.Peripheral.BlePeripheral.SendAwaitResponse(System.String)"/>
+        </member>
+        <member name="M:SylvacBleLib.Peripheral.BlePeripheral.SendCommandAsync(System.String,System.Int32)">
+            <see cref="M:SylvacBleLib.Peripheral.BlePeripheral.SendAwaitResponse(System.String,System.Int32)"/>
+        </member>
+        <member name="M:SylvacBleLib.Peripheral.BlePeripheral.SendCommandAsync(System.String,System.Threading.CancellationToken)">
+            <see cref="M:SylvacBleLib.Peripheral.BlePeripheral.SendCommandAsync(System.String,System.Int32,System.Threading.CancellationToken)"/>
+        </member>
+        <member name="M:SylvacBleLib.Peripheral.BlePeripheral.SendCommandAsync(System.String,System.String,System.Int32,System.Threading.CancellationToken)">
+            <summary>
+            Sends a command to the instrument and returns a task to await a response.
+            </summary>
+            <param name="trimmedCommand">Command without trailing carriage return</param>
+            <param name="endOfFrame">End of frame character specific to <paramref name="trimmedCommand"/></param>
+            <param name="timeoutMs">Timeout to receive a response in milliseconds</param>
+            <param name="ct">Cancellation token</param>
+            <returns>Task that can be awaited for a response.</returns>
+        </member>
+        <member name="M:SylvacBleLib.Peripheral.BlePeripheral.SendCommandAsync(System.String,System.String,System.Int32)">
+            <inheritdoc cref="M:SylvacBleLib.Peripheral.BlePeripheral.SendCommandAsync(System.String,System.String,System.Int32,System.Threading.CancellationToken)"/>
+        </member>
+        <member name="M:SylvacBleLib.Peripheral.BlePeripheral.SendCommandAsync(System.String,System.String,System.Threading.CancellationToken)">
+            <inheritdoc cref="M:SylvacBleLib.Peripheral.BlePeripheral.SendCommandAsync(System.String,System.String,System.Int32,System.Threading.CancellationToken)"/>
+        </member>
+        <member name="M:SylvacBleLib.Peripheral.BlePeripheral.SendCommandAsync(System.String,System.String)">
+            <inheritdoc cref="M:SylvacBleLib.Peripheral.BlePeripheral.SendCommandAsync(System.String,System.String,System.Int32,System.Threading.CancellationToken)"/>
+        </member>
+        <member name="M:SylvacBleLib.Peripheral.BlePeripheral.SendAwaitResponse(System.String,System.Int32,System.Threading.CancellationToken)">
+            <summary>
+            Sends a command to the instrument and returns a task to await a response.
+            </summary>
+            <param name="trimmedCommand">Command without trailing carriage return</param>
+            <param name="timeoutMs">Timeout to receive a response in milliseconds</param>
+            <param name="ct">Cancellation token</param>
+            <returns>Task that can be awaited for a response.</returns>
+        </member>
+        <member name="M:SylvacBleLib.Peripheral.BlePeripheral.SendAwaitResponse(System.String,System.Int32)">
+            <inheritdoc cref="M:SylvacBleLib.Peripheral.BlePeripheral.SendAwaitResponse(System.String,System.Int32,System.Threading.CancellationToken)"/>
+        </member>
+        <member name="M:SylvacBleLib.Peripheral.BlePeripheral.SendAwaitResponse(System.String)">
+            <inheritdoc cref="M:SylvacBleLib.Peripheral.BlePeripheral.SendAwaitResponse(System.String,System.Int32,System.Threading.CancellationToken)"/>
+        </member>
+        <member name="M:SylvacBleLib.Peripheral.BlePeripheral.SendAwaitResponse(System.String,System.String,System.Int32,System.Threading.CancellationToken)">
+            <inheritdoc cref="M:SylvacBleLib.Peripheral.BlePeripheral.SendCommandAsync(System.String,System.String,System.Int32,System.Threading.CancellationToken)"/>
+            <remarks>
+            Throws an exception if the task is not succcessful.
+            <see cref="M:SylvacBleLib.Peripheral.BlePeripheral.SendCommandAsync(System.String,System.String,System.Int32,System.Threading.CancellationToken)"/> has the same functionality
+            but returns the exception in a <see cref="T:LibUtils.Results.Result`1"/>.
+            </remarks>
+        </member>
+        <member name="M:SylvacBleLib.Peripheral.BlePeripheral.SendAwaitResponse(System.String,System.String)">
+            <inheritdoc cref="M:SylvacBleLib.Peripheral.BlePeripheral.SendAwaitResponse(System.String,System.String,System.Int32,System.Threading.CancellationToken)"/>
+        </member>
+        <member name="M:SylvacBleLib.Peripheral.BlePeripheral.SetConnectionStepResult(SylvacBleLib.Connections.ConnectionStep)">
+            <summary>
+            Sets <see cref="F:SylvacBleLib.Peripheral.BlePeripheral._connectionStepAwaiters"/>
+            according to the value change of <see cref="P:SylvacBleLib.Peripheral.BlePeripheral.ConnectionStep"/>.
+            </summary>
+        </member>
+        <member name="M:SylvacBleLib.Peripheral.BlePeripheral.SetEndOfFrame(System.String)">
+            <summary>
+            Sets the end-of-frame string for the SMS Response characteristic.
+            </summary>
+            <param name="endOfFrame">End-of-frame string</param>
+        </member>
+        <member name="M:SylvacBleLib.Peripheral.BlePeripheral.ResetEndOfFrame">
+            <summary>
+            Resets the end-of-frame character for the SMS Response characteristic
+            to carriage return.
+            </summary>
+        </member>
+        <member name="M:SylvacBleLib.Peripheral.BlePeripheral.ClearCommandQueue">
+            <inheritdoc cref="M:SylvacBleLib.Peripheral.CommandSender.ClearCommandQueue"/>
+        </member>
+        <member name="M:SylvacBleLib.Peripheral.BlePeripheral.GetCommandQueueLimit">
+            <inheritdoc cref="M:SylvacBleLib.Peripheral.CommandSender.GetCommandQueueLimit"/>
+        </member>
+        <member name="M:SylvacBleLib.Peripheral.BlePeripheral.SetCommandQueueLimit(System.Int32)">
+            <inheritdoc cref="M:SylvacBleLib.Peripheral.CommandSender.SetCommandQueueLimit(System.Int32)"/>
+        </member>
+        <member name="M:SylvacBleLib.Peripheral.BlePeripheral.SetConnectionParams(LayerConnection.Connectable.SettableConnParams)">
+            <summary>
+            Sets connection parameters for the current connection.
+            </summary>
+            <remarks>
+            In case of a successful change of connection parameters, the
+            <see cref="P:SylvacBleLib.Peripheral.BlePeripheral.ConnectionParams"/> property will change accordingly.
+            </remarks>
+            <param name="connParams">Connection parameters</param>
+            <returns>Success if an attempt to change the connection parameters
+            is underway, otherwise error.</returns>
+        </member>
+        <member name="F:SylvacBleLib.Peripheral.BlePeripheralManager._disconnectAllTcs">
+            <summary>
+            Allows to implement the awaitability of <see cref="M:SylvacBleLib.Peripheral.BlePeripheralManager.DisconnectAllAsync(System.Int32)"/>
+            </summary>
+        </member>
+        <member name="M:SylvacBleLib.Peripheral.BlePeripheralManager.DeletePeripheral(SylvacBleLib.Peripheral.BlePeripheral)">
+            <summary>
+            Unassigns a Bluetooth peripheral from its central, removes it from
+            the peripherals list, disconnects it and disposes it.
+            </summary>
+            <param name="blePeripheral">Bluetooth peripheral to delete</param>
+        </member>
+        <member name="M:SylvacBleLib.Peripheral.BlePeripheralManager.DisconnectAllAsync(System.Int32)">
+            <summary>
+            Disconnects all peripherals in the <see cref="P:SylvacBleLib.Peripheral.BlePeripheralManager.BlePeripherals"/> list.
+            </summary>
+            <remarks>Does not remove the peripherals from the <see cref="P:SylvacBleLib.Peripheral.BlePeripheralManager.BlePeripherals"/> list.</remarks>
+            <param name="timeoutMs">Timeout in milliseconds for all peripherals to be disconnected</param>
+            <returns><see langword="true"/> if all peripherals have been disconnected.</returns>
+        </member>
+        <member name="M:SylvacBleLib.Peripheral.BlePeripheralManager.DisconnectAllAsync">
+            <summary>
+            Disconnects all peripherals in the <see cref="P:SylvacBleLib.Peripheral.BlePeripheralManager.BlePeripherals"/> list.
+            </summary>
+            <returns><see langword="true"/> if all peripherals have been disconnected successfully.</returns>
+        </member>
+        <member name="M:SylvacBleLib.Peripheral.BlePeripheralManager.RemoveAllPeripheralsAsync">
+            <summary>
+            Disconnects and remove all peripherals from the <see cref="P:SylvacBleLib.Peripheral.BlePeripheralManager.BlePeripherals"/> list.
+            </summary>
+            <returns><see langword="true"/> if all peripherals have been disconnected and removed successfully.</returns>
+        </member>
+        <member name="M:SylvacBleLib.Peripheral.BlePeripheralManager.UpdateDisconnectAllTcs">
+            <summary>
+            Updates <see cref="F:SylvacBleLib.Peripheral.BlePeripheralManager._disconnectAllTcs"/> according to the state of <see cref="P:SylvacBleLib.Peripheral.BlePeripheralManager.BlePeripherals"/>.
+            </summary>
+        </member>
+        <member name="M:SylvacBleLib.Peripheral.BlePeripheralManager.DisconnectByMac(BgApi.bd_addr,System.Threading.CancellationToken)">
+            <summary>
+            Disconnects a Bluetooth peripheral given its MAC address.
+            </summary>
+            <param name="mac">MAC address of the peripheral to disconnect</param>
+            <param name="ct">Cancellation token</param>
+            <returns>Task that yields the result of the disconnection attempt</returns>
+        </member>
+        <member name="M:SylvacBleLib.Peripheral.BlePeripheralManager.DisconnectByMac(BgApi.bd_addr)">
+            <inheritdoc cref="M:SylvacBleLib.Peripheral.BlePeripheralManager.DisconnectByMac(BgApi.bd_addr,System.Threading.CancellationToken)"/>
+        </member>
+        <member name="M:SylvacBleLib.Peripheral.BlePeripheralManager.DisconnectByMac(System.String,System.Threading.CancellationToken)">
+            <inheritdoc cref="M:SylvacBleLib.Peripheral.BlePeripheralManager.DisconnectByMac(BgApi.bd_addr,System.Threading.CancellationToken)"/>
+        </member>
+        <member name="M:SylvacBleLib.Peripheral.BlePeripheralManager.DisconnectByMac(System.String)">
+            <inheritdoc cref="M:SylvacBleLib.Peripheral.BlePeripheralManager.DisconnectByMac(System.String,System.Threading.CancellationToken)"/>
+        </member>
+        <member name="T:SylvacBleLib.Peripheral.CentralPeripheralLinker">
+            <summary>
+            Manages links between <see cref="T:SylvacBleLib.Central.BleCentral"/> (dongle) and <see cref="T:SylvacBleLib.Peripheral.BlePeripheral"/> (instrument).
+            </summary>
+        </member>
+        <member name="M:SylvacBleLib.Peripheral.CentralPeripheralLinker.TryReassignPeripheral(SylvacBleLib.Peripheral.BlePeripheral)">
+            <summary>
+            Attempts to reassign a peripheral to a different central (dongle)
+            than its <see cref="P:SylvacBleLib.Peripheral.BlePeripheral.CentralToConnectMac"/> property.
+            </summary>
+            <param name="peripheral">Peripheral to reassign to another dongle</param>
+            <returns><see langword="true"/> if the peripheral has been reassigned.</returns>
+        </member>
+        <member name="T:SylvacBleLib.Peripheral.CommandSender">
+            <summary>
+            Manages a queue of commands to send to an instrument.
+            </summary>
+        </member>
+        <member name="F:SylvacBleLib.Peripheral.CommandSender.DefaultSendingsLimit">
+            <summary>
+            Maximum number of items allowed in the command queue.
+            </summary>
+        </member>
+        <member name="F:SylvacBleLib.Peripheral.CommandSender.DefaultResponseTimeoutMs">
+            <summary>
+            Default response timeout, in milliseconds.
+            </summary>
+        </member>
+        <member name="F:SylvacBleLib.Peripheral.CommandSender._timeoutTimer">
+            <summary>
+            Timeout timer.
+            </summary>
+        </member>
+        <member name="F:SylvacBleLib.Peripheral.CommandSender._sendings">
+            <summary>
+            Commands queue.
+            </summary>
+        </member>
+        <member name="F:SylvacBleLib.Peripheral.CommandSender._currentSending">
+            <summary>
+            Last command sent.
+            </summary>
+        </member>
+        <member name="F:SylvacBleLib.Peripheral.CommandSender._sendingsLimit">
+            <summary>
+            Maximum number of items allowed in <see cref="F:SylvacBleLib.Peripheral.CommandSender._sendings"/>.
+            </summary>
+        </member>
+        <member name="F:SylvacBleLib.Peripheral.CommandSender._weakCallbackDispatcher">
+            <inheritdoc cref="M:SylvacBleLib.Bt5LibManager.DispatchWeakCallback(LayerCommons.Messaging.InternalMessage.WeakCallbackMsg)"/>
+        </member>
+        <member name="P:SylvacBleLib.Peripheral.CommandSender.SendCommandCallback">
+            <summary>
+            Callback to send a command to the instrument.
+            </summary>
+        </member>
+        <member name="P:SylvacBleLib.Peripheral.CommandSender.CommandQueueCount">
+            <summary>
+            Gets the number of items in the command queue.
+            </summary>
+        </member>
+        <member name="M:SylvacBleLib.Peripheral.CommandSender.OnTimeout(System.Object)">
+            <summary>
+            Timeout timer callback.
+            </summary>
+        </member>
+        <member name="M:SylvacBleLib.Peripheral.CommandSender.OnTimeoutEvent">
+            <summary>
+            Timeout timer callback called on the BT DLL event thread.
+            </summary>
+        </member>
+        <member name="M:SylvacBleLib.Peripheral.CommandSender.OnSendingCancellation">
+            <summary>
+            Callback for the registration to the <see cref="T:System.Threading.CancellationToken"/> of a <see cref="T:SylvacBleLib.Peripheral.CommandSending"/>.
+            </summary>
+        </member>
+        <member name="M:SylvacBleLib.Peripheral.CommandSender.SendCommandWithTimeout(System.String,System.Int32,System.Threading.CancellationToken)">
+            <summary>
+            Sends (or delays) a command with a timeout.
+            </summary>
+            <param name="fullCommand">Command to send</param>
+            <param name="timeoutMs">Timeout in milliseconds</param>
+            <param name="ct">Cancellation token</param>
+        </member>
+        <member name="M:SylvacBleLib.Peripheral.CommandSender.SendCommandSansTimeout(System.String,System.Threading.CancellationToken)">
+            <summary>
+            Sends (or delays) a command without timeout.
+            </summary>
+            <param name="fullCommand">Command to send</param>
+            <param name="ct">Cancellation token</param>
+        </member>
+        <member name="M:SylvacBleLib.Peripheral.CommandSender.SendOrDelayCommand(SylvacBleLib.Peripheral.CommandSending)">
+            <summary>
+            Sends or enqueue a command to send.
+            </summary>
+            <param name="sending">Command to send</param>
+            <returns><see langword="true"/> if the command has been sent or delayed,
+            <see langword="false"/> if no command can be sent or delayed anymore.</returns>
+        </member>
+        <member name="M:SylvacBleLib.Peripheral.CommandSender.SendCommandDirect(SylvacBleLib.Peripheral.CommandSending)">
+            <summary>
+            Sets the timeout timer and sends a command directly.
+            </summary>
+            <param name="sending">Command to send</param>
+        </member>
+        <member name="M:SylvacBleLib.Peripheral.CommandSender.ProcessResponse(System.String)">
+            <summary>
+            Assigns a response to the last sent command, and sends the next command if any.
+            </summary>
+            <param name="value">Response received</param>
+        </member>
+        <member name="M:SylvacBleLib.Peripheral.CommandSender.ClearCommandQueue">
+            <summary>
+            Clears the command queue.
+            </summary>
+            <returns>Number of items cleared.</returns>
+        </member>
+        <member name="M:SylvacBleLib.Peripheral.CommandSender.GetCommandQueueLimit">
+            <summary>
+            Gets the maximum number of items that are allowed in the command queue.
+            </summary>
+        </member>
+        <member name="M:SylvacBleLib.Peripheral.CommandSender.SetCommandQueueLimit(System.Int32)">
+            <summary>
+            Sets the maximum number of items that are allowed in the command queue.
+            </summary>
+            <remarks>
+            Does not remove the surplus items that might already be in the queue.
+            </remarks>
+        </member>
+        <member name="T:SylvacBleLib.Peripheral.CommandSending">
+            <summary>
+            Represents a command to send to an instrument and to await a response.
+            </summary>
+        </member>
+        <member name="P:SylvacBleLib.Peripheral.CommandSending.FullCommand">
+            <summary>
+            Command to send.
+            </summary>
+        </member>
+        <member name="P:SylvacBleLib.Peripheral.CommandSending.TimeoutMs">
+            <summary>
+            Timeout in milliseconds.
+            </summary>
+            <remarks>
+            Strictly greater than zero if the command is to be awaited.
+            Otherwise negative or zero.
+            </remarks>
+        </member>
+        <member name="P:SylvacBleLib.Peripheral.CommandSending.ResponseTcs">
+            <summary>
+            Allows to await a response to <see cref="P:SylvacBleLib.Peripheral.CommandSending.FullCommand"/>.
+            </summary>
+        </member>
+        <member name="P:SylvacBleLib.Peripheral.CommandSending.CancellationToken">
+            <summary>
+            Cancellation token for this sending.
+            </summary>
+        </member>
+        <member name="P:SylvacBleLib.Peripheral.CommandSending.CancellationRegistration">
+            <summary>
+            Cancellation token registration for this sending.
+            </summary>
+        </member>
+        <member name="T:SylvacBleLib.Protocol.FrameAssembler">
+            <summary>
+            Reassembles fragments of a frame terminated by <see cref="P:SylvacBleLib.Protocol.FrameAssembler.EndOfFrame"/>.
+            </summary>
+        </member>
+        <member name="F:SylvacBleLib.Protocol.FrameAssembler._partialFrame">
+            <summary>
+            Partial frame buffer.
+            </summary>
+        </member>
+        <member name="P:SylvacBleLib.Protocol.FrameAssembler.EndOfFrame">
+            <summary>
+            End-of-frame string.
+            </summary>
+        </member>
+        <member name="M:SylvacBleLib.Protocol.FrameAssembler.Assemble(System.String,System.String@)">
+            <summary>
+            Re-assemble frame fragments based on <see cref="P:SylvacBleLib.Protocol.FrameAssembler.EndOfFrame"/>.
+            </summary>
+            <param name="fragment">Frame</param>
+            <param name="assembledFrame"></param>
+            <returns></returns>
+        </member>
+        <member name="T:SylvacBleLib.Protocol.SmsComManager">
+            <summary>
+            Communication manager for the Sylvac Metrology Service (SMS).
+            </summary>
+        </member>
+        <member name="F:SylvacBleLib.Scanning.BleAdvItem.BatteryLevelSeparator">
+            <summary>
+            Separator of battery level inside the advertised "DIS Model Number String" (Article Number/Sales Number).
+            </summary>
+        </member>
+        <member name="P:SylvacBleLib.Scanning.BleAdvItem.AdvertismentNumericValue">
+            <summary>
+            Live value, advertised as "SDS Measurement" characteristic.
+            </summary>
+        </member>
+        <member name="P:SylvacBleLib.Scanning.BleAdvItem.AdvFloatValue">
+            <inheritdoc/>
+        </member>
+        <member name="P:SylvacBleLib.Scanning.BleAdvItem.AdvertismentName">
+            <summary>
+            Advertised device name.
+            </summary>
+        </member>
+        <member name="P:SylvacBleLib.Scanning.BleAdvItem.AdvertismentRSSI">
+            <summary>
+            RSSI in dBm.
+            </summary>
+        </member>
+        <member name="P:SylvacBleLib.Scanning.BleAdvItem.IsBonded">
+            <inheritdoc/>
+        </member>
+        <member name="P:SylvacBleLib.Scanning.BleAdvItem.IsBondedToAnother">
+            <inheritdoc/>
+        </member>
+        <member name="P:SylvacBleLib.Scanning.BleAdvItem.AdvertismentArticleNumber">
+            <summary>
+            Article number (aka Sales number), advertised as "DIS Model Number String" characteristic.
+            </summary>
+        </member>
+        <member name="P:SylvacBleLib.Scanning.BleAdvItem.AdvertismentBatteryLevel">
+            <summary>
+            Battery level in percent or -1.
+            </summary>
+        </member>
+        <member name="M:SylvacBleLib.Scanning.BleAdvItem.ResetComputedProperties">
+            <summary>
+            Resets the properties that are computed from <see cref="P:SylvacBleLib.Scanning.BleAdvItem.LastAdv"/>.
+            </summary>
+        </member>
+        <member name="M:SylvacBleLib.Scanning.BleAdvItem.ExtractBatteryLevelFromArticleNumber(LayerConnection.Messaging.Event.AdvPacketEvt,System.Int32@,System.String@)">
+            <summary>
+            Extracts battery level from the advertised "DIS Model Number String".
+            </summary>
+            <param name="advPacketEvt">Advertising packet</param>
+            <param name="batteryLevel">Battery level extracted or -1</param>
+            <param name="articleNumber">Article number extracted or <see langword="null"/></param>
+            <returns><see langword="true"/> if <paramref name="batteryLevel"/> has been extracted,
+            or <see langword="false"/> if only <paramref name="articleNumber"/> or none of them has been extracted.</returns>
+        </member>
+        <member name="T:SylvacBleLib.Scanning.BleScanManager">
+            <summary>
+            Bluetooth scan manager.
+            </summary>
+        </member>
+        <member name="F:SylvacBleLib.Scanning.BleScanManager.DeviceNameStarts">
+            <summary>
+            Accepted advertisement device names.
+            </summary>
+            <remarks>
+            See <c>arrayNameInstr</c> array in <c>Constante.h</c> in C++ DLL code.
+            </remarks>
+        </member>
+        <member name="F:SylvacBleLib.Scanning.BleScanManager._scanId">
+            <summary>
+            Scan ID for this instance.
+            </summary>
+        </member>
+        <member name="P:SylvacBleLib.Scanning.BleScanManager.Advertisers">
+            <summary>
+            Scan list, which is a list of Bluetooth advertisers.
+            </summary>
+        </member>
+        <member name="P:SylvacBleLib.Scanning.BleScanManager.SylvacOnly">
+            <summary>
+            <see langword="true"/> to keep only advertisers with Sylvac-compatible device names.
+            </summary>
+            <remarks>
+            Sylvac-compatible names start with one of the strings in <see cref="F:SylvacBleLib.Scanning.BleScanManager.DeviceNameStarts"/>.
+            </remarks>
+        </member>
+        <member name="P:SylvacBleLib.Scanning.BleScanManager.IsScanning">
+            <summary>
+            Indicates whether a manual scan is being done with <see cref="M:SylvacBleLib.Scanning.BleScanManager.StartScan"/>.
+            </summary>
+            <remarks>
+            <para><see langword="true"/> when <see cref="M:SylvacBleLib.Scanning.BleScanManager.StartScan"/> or <see cref="M:SylvacBleLib.Scanning.BleScanManager.StartScanOnDongle(BgApi.bd_addr)"/> has been called,</para>
+            <para><see langword="false"/> when <see cref="M:SylvacBleLib.Scanning.BleScanManager.StopScan"/> or <see cref="M:SylvacBleLib.Scanning.BleScanManager.StopScanOnDongle(BgApi.bd_addr)"/> has been called.</para>
+            </remarks>
+        </member>
+        <member name="M:SylvacBleLib.Scanning.BleScanManager.StartScan">
+            <summary>
+            Starts scanning on all dongles.
+            </summary>
+            <remarks>
+            Does not clear the scan list, use <see cref="M:SylvacBleLib.Scanning.BleScanManager.ClearScan"/> to do so.
+            </remarks>
+        </member>
+        <member name="M:SylvacBleLib.Scanning.BleScanManager.StartScanOnDongle(BgApi.bd_addr)">
+            <summary>
+            Starts scanning on a specific dongle.
+            </summary>
+            <param name="dongleMac">Dongle MAC address</param>
+        </member>
+        <member name="M:SylvacBleLib.Scanning.BleScanManager.StopScan">
+            <summary>
+            Stops scanning on all dongles.
+            </summary>
+            <remarks>
+            Does not clear the scan list, use <see cref="M:SylvacBleLib.Scanning.BleScanManager.ClearScan"/> to do so.
+            </remarks>
+        </member>
+        <member name="M:SylvacBleLib.Scanning.BleScanManager.StopScanOnDongle(BgApi.bd_addr)">
+            <summary>
+            Starts scanning on a specific dongle.
+            </summary>
+            <param name="dongleMac">Dongle MAC address</param>
+        </member>
+        <member name="M:SylvacBleLib.Scanning.BleScanManager.ClearScan">
+            <summary>
+            Clears the scan list.
+            </summary>
+        </member>
+        <member name="M:SylvacBleLib.Scanning.BleScanManager.IsAuthorizedDeviceName(System.String)">
+            <summary>
+            Returns <see langword="true"/> if <paramref name="deviceName"/> starts
+            with one of the elements of <see cref="F:SylvacBleLib.Scanning.BleScanManager.DeviceNameStarts"/>.
+            </summary>
+            <param name="deviceName">Device name to test</param>
+        </member>
+    </members>
+</doc>

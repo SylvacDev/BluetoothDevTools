@@ -1,5 +1,6 @@
 using CoreWpfUtils.Commands;
 using LibUtils.Collections;
+using LogUtils.Logger;
 using SylvacBleLib;
 using SylvacBleLib.Central;
 using SylvacBleLib.Peripheral;
@@ -31,6 +32,9 @@ namespace BluetoothExample
         public MainViewModel()
         {
             _bleManager = BleManager.Instance;
+
+            // Set log level to debug before calling 'Start()' to see all logs.
+            _bleManager.InitLog(LogLevel.Debug);
 
             // Start the Bluetooth manager.
             _bleManager.Start();

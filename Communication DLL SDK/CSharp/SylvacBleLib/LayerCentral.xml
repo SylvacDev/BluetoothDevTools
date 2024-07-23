@@ -1,0 +1,613 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>LayerCentral</name>
+    </assembly>
+    <members>
+        <member name="M:LayerCentral.Bonding.DetermineBondAction(LayerConnection.Dongle.IBondStatus,LayerConnection.Sylvac.BondMode)">
+            <summary>
+            Determines a bond action to perform depending on the current bond status and a bond mode.
+            </summary>
+            <param name="bondStatus">Current bond status of the couple central-peripheral (dongle-instrument)</param>
+            <param name="bondMode">Bond mode advertised by the peripheral (instrument) prior to being connected</param>
+            <returns>A bond action to perform.</returns>
+        </member>
+        <member name="M:LayerCentral.Bonding.DetermineBondActionWithCondition(LayerConnection.Dongle.IBondStatus,LayerConnection.Sylvac.BondMode,LayerCentral.Configuration.BondCondition)">
+            <summary>
+            Determines a suitable "bond action" to perform, given a bond status, a bond mode, and a bond condition.
+            </summary>
+            <param name="bondStatus">Bond status: paired, bonded, or none</param>
+            <param name="bondMode">Bond mode: bondable and bonded, bondable and not bonded, not bondable</param>
+            <param name="bondCondition">Bond condition: on connection, on guess (using <paramref name="bondMode"/>), on insufficient error code, or never</param>
+            <returns>Bond action to take in order to satisfy the given arguments.</returns>
+        </member>
+        <member name="M:LayerCentral.Bonding.DetermineBondActionFromEvent(LayerConnection.Messaging.Event.ConnectionEvt,LayerCentral.Configuration.BondCondition)">
+            <summary>
+            Determines a suitable "bond action" to perform, given a connection event and a bond condition.
+            </summary>
+            <param name="evt">Connection event containing a "bond status" and a "bond mode"</param>
+            <param name="bondCondition">Bond condition: on connection, on guess (using <paramref name="evt"/>), on insufficient error code, or never</param>
+            <returns>Bond action to take in order to satisfy the given arguments.</returns>
+        </member>
+        <member name="P:LayerCentral.CentralLayerVia.ProcessUpperRequest">
+            <summary>
+            Transmits a request to the upper layer.
+            </summary>
+        </member>
+        <member name="M:LayerCentral.CentralLayerVia.PublishNewPeripheralStatus(LayerCentral.Peripheral.MountablePeripheral)">
+            <summary>
+            Publishes statuses of a newly-added <see cref="T:LayerCentral.Peripheral.MountablePeripheral"/>.
+            </summary>
+            <remarks>
+            Status changes are then published by the event handlers registered in
+            <see cref="M:LayerCentral.CentralLayerVia.SubscribeToPeripheral(LayerCentral.Peripheral.MountablePeripheral)"/>.
+            </remarks>
+            <param name="peripheral">Bluetooth GAP peripheral</param>
+        </member>
+        <member name="F:LayerCentral.Configuration.BondCondition.Never">
+            <summary>
+            Never try to bond.
+            </summary>
+        </member>
+        <member name="F:LayerCentral.Configuration.BondCondition.OnInsuf">
+            <summary>
+            Try to bond if an insufficient encryption error is received
+            when interacting with the GATT server.
+            </summary>
+            <remarks>
+            Bluetooth 5 instruments return a <see cref="F:BgApi.ble_error.ble_err_att_insufficient_encryption"/>
+            error when bonding is required, whereas Bluetooth 4 instruments return a
+            <see cref="F:BgApi.ble_error.ble_err_att_insufficient_authentication"/> error.
+            </remarks>
+        </member>
+        <member name="F:LayerCentral.Configuration.BondCondition.OnConnect">
+            <summary>
+            Try to bond as soon as the connection is established.
+            </summary>
+        </member>
+        <member name="F:LayerCentral.Configuration.BondCondition.OnGuess">
+            <summary>
+            Try to bond when the connection is established,
+            if the advertising flags are 0x05.
+            </summary>
+            <remarks>
+            Advertising flags value of 0x05 means <see cref="F:BgApi.Gap.AdFlag.Limited"/> with <see cref="F:BgApi.Gap.AdFlag.NoBrEdr"/> flags.
+            It is interpreted as <seealso cref="F:LayerConnection.Sylvac.BondMode.BondableBonded"/>.
+            </remarks>
+        </member>
+        <member name="F:LayerCentral.Configuration.BondCondition.OnGuessOrInsuf">
+            <summary>
+            Try to bond if advertising flags are 0x05, or if an insufficient encryption error is received
+            when writing or reading ATT handles. Combination of <see cref="F:LayerCentral.Configuration.BondCondition.OnGuess"/> and <see cref="F:LayerCentral.Configuration.BondCondition.OnInsuf"/>.
+            </summary>
+        </member>
+        <member name="F:LayerCentral.Configuration.CentralLayerConfig.DefaultDongleInitDelayMs">
+            <summary>
+            Default value of <see cref="P:LayerCentral.Configuration.CentralLayerConfig.DongleInitDelayMs"/>.
+            </summary>
+        </member>
+        <member name="P:LayerCentral.Configuration.CentralLayerConfig.AutoDetectDongles">
+            <summary>
+            <see langword="true"/> to automatically detect Bluetooth dongles.
+            </summary>
+        </member>
+        <member name="P:LayerCentral.Configuration.CentralLayerConfig.AutoConnectDongles">
+            <summary>
+            <see langword="true"/> to automatically connect Bluetooth dongles.
+            </summary>
+        </member>
+        <member name="P:LayerCentral.Configuration.CentralLayerConfig.DongleInitDelayMs">
+            <summary>
+            Delay in milliseconds before initializing the dongle, after opening the port.
+            </summary>
+            <remarks>Zero for no delay.</remarks>
+        </member>
+        <member name="P:LayerCentral.Configuration.CentralLayerConfig.DisconnectAllOnStartup">
+            <summary>
+            <see langword="true"/> to disconnect all devices when the application starts up.
+            </summary>
+        </member>
+        <member name="P:LayerCentral.Configuration.CentralLayerConfig.StaleBondPolicy">
+            <summary>
+            Allows to automatically remove stale bonds on dongles.
+            </summary>
+            <remarks>
+            A stale bond refers to a bond being present on a dongle but not on the instrument.
+            It happens when a BT RESET is done on the instrument side only.
+            </remarks>
+        </member>
+        <member name="P:LayerCentral.Configuration.CentralLayerConfig.DefaultMountConfig">
+            <summary>
+            Default configuration for mounting Bluetooth peripherals.
+            </summary>
+            <remarks>
+            Mounting a Bluetooth device refers to connecting the device and performing operations
+            that make it usable by upper layers.
+            </remarks>
+        </member>
+        <member name="P:LayerCentral.Configuration.DeviceMountConfig.Mac">
+            <inheritdoc/>
+        </member>
+        <member name="P:LayerCentral.Configuration.DeviceMountConfig.AutoDiscover">
+            <inheritdoc/>
+        </member>
+        <member name="P:LayerCentral.Configuration.DeviceMountConfig.AutoSubscribe">
+            <inheritdoc/>
+        </member>
+        <member name="P:LayerCentral.Configuration.DeviceMountConfig.AutoSubOrder">
+            <summary>
+            Order in which to subscribe to <see cref="P:LayerCentral.Configuration.DeviceMountConfig.AutoSubChars"/>.
+            </summary>
+        </member>
+        <member name="P:LayerCentral.Configuration.DeviceMountConfig.AllowSkipSubscribe">
+            <inheritdoc/>
+        </member>
+        <member name="P:LayerCentral.Configuration.DeviceMountConfig.AutoSubChars">
+            <inheritdoc cref="P:LayerCentral.Configuration.IBleMountConfig.AutoSubChars"/>
+        </member>
+        <member name="P:LayerCentral.Configuration.DeviceMountConfig.BondCond">
+            <inheritdoc/>
+        </member>
+        <member name="P:LayerCentral.Configuration.DeviceMountConfig.AttHandles">
+            <summary>
+            Bluetooth characteristics and descriptors handles.
+            </summary>
+        </member>
+        <member name="P:LayerCentral.Configuration.DeviceMountConfig.LastDisconnectionTick">
+            <summary>
+            Value of <see cref="P:System.Environment.TickCount"/> when the last disconnection occurred.
+            </summary>
+        </member>
+        <member name="M:LayerCentral.Configuration.DeviceMountConfig.UpdateFrom(LayerCentral.Configuration.IBleMountConfig)">
+            <inheritdoc/>
+        </member>
+        <member name="T:LayerCentral.Configuration.IBleMountConfig">
+            <summary>
+            Operations that allow to mount a Bluetooth device.
+            </summary>
+            <remarks>
+            Mounting a Bluetooth device refers to connecting the device and performing operations
+            that make it usable by upper layers.
+            </remarks>
+        </member>
+        <member name="P:LayerCentral.Configuration.IBleMountConfig.Mac">
+            <summary>
+            MAC address.
+            </summary>
+        </member>
+        <member name="P:LayerCentral.Configuration.IBleMountConfig.AutoDiscover">
+            <summary>
+            <see langword="true"/> to discover the service automatically.
+            </summary>
+        </member>
+        <member name="P:LayerCentral.Configuration.IBleMountConfig.AutoSubscribe">
+            <summary>
+            <see langword="true"/> to subscribe to the characteristics automatically.
+            </summary>
+        </member>
+        <member name="P:LayerCentral.Configuration.IBleMountConfig.BondCond">
+            <summary>
+            Condition to initiate bonding.
+            </summary>
+        </member>
+        <member name="P:LayerCentral.Configuration.IBleMountConfig.AllowSkipSubscribe">
+            <summary>
+            Allow to skip subscribing to characteristics when a subscription is deemed existing.
+            </summary>
+            <remarks>
+            A subscription is already existing when reconnecting a bonded device to which we were
+            subscribed. Might also be the case if not bonded but with GATT caching enabled (to check).
+            </remarks>
+        </member>
+        <member name="P:LayerCentral.Configuration.IBleMountConfig.AutoSubChars">
+            <summary>
+            Characteristics for which <see cref="P:LayerCentral.Configuration.IBleMountConfig.AutoSubscribe"/> applies.
+            </summary>
+        </member>
+        <member name="T:LayerCentral.Configuration.StaleBondPolicy">
+            <summary>
+            Stale bond policy.
+            </summary>
+        </member>
+        <member name="P:LayerCentral.Dongle.BasicBondStatus.DongleHasBond">
+            <inheritdoc/>
+        </member>
+        <member name="P:LayerCentral.Dongle.BasicBondStatus.IsEncrypted">
+            <inheritdoc/>
+        </member>
+        <member name="P:LayerCentral.Dongle.BasicBondStatus.IsBonded">
+            <inheritdoc/>
+        </member>
+        <member name="T:LayerCentral.Dongle.BleDongle">
+            <summary>
+            Associates a device number with a MAC address.
+            </summary>
+        </member>
+        <member name="M:LayerCentral.Dongle.BleDongleManager.SendInitialRequests(LayerConnection.Messaging.Event.DongleAddedEvt)">
+            <summary>
+            Sends initial requests to a newly-added dongle.
+            </summary>
+            <param name="evt">Dongle added event</param>
+        </member>
+        <member name="M:LayerCentral.Dongle.BleDongleManager.DisconnectAll">
+            <summary>
+            Disconnects all devices of all dongles.
+            </summary>
+        </member>
+        <member name="T:LayerCentral.Messaging.EventProvider.IAllEvtProvider">
+            <summary>
+            Interface that requires to implement all interfaces
+            of <see cref="N:LayerCentral.Messaging.EventProvider"/>.
+            </summary>
+        </member>
+        <member name="P:LayerCentral.Messaging.Event.PeripheralAttHandlesEvt.MacAddress">
+            <inheritdoc/>
+        </member>
+        <member name="P:LayerCentral.Messaging.Event.PeripheralAttHandlesEvt.ConnId">
+            <inheritdoc/>
+        </member>
+        <member name="P:LayerCentral.Messaging.Event.PeripheralAttHandlesEvt.AttHandles">
+            <summary>
+            ATT handles.
+            </summary>
+        </member>
+        <member name="P:LayerCentral.Messaging.Event.PeripheralBondAdviceEvt.MacAddress">
+            <inheritdoc/>
+        </member>
+        <member name="P:LayerCentral.Messaging.Event.PeripheralBondAdviceEvt.ConnId">
+            <inheritdoc/>
+        </member>
+        <member name="P:LayerCentral.Messaging.Event.PeripheralBondAdviceEvt.BondAdvice">
+            <summary>
+            Bonding advice.
+            </summary>
+        </member>
+        <member name="P:LayerCentral.Messaging.Event.PeripheralBondErrorEvt.MacAddress">
+            <inheritdoc/>
+        </member>
+        <member name="P:LayerCentral.Messaging.Event.PeripheralBondErrorEvt.ConnId">
+            <inheritdoc/>
+        </member>
+        <member name="P:LayerCentral.Messaging.Event.PeripheralBondErrorEvt.BondError">
+            <summary>
+            Bonding error.
+            </summary>
+        </member>
+        <member name="P:LayerCentral.Messaging.Event.PeripheralConnectedEvt.MacAddress">
+            <inheritdoc/>
+        </member>
+        <member name="P:LayerCentral.Messaging.Event.PeripheralConnectedEvt.ConnId">
+            <inheritdoc/>
+        </member>
+        <member name="P:LayerCentral.Messaging.Event.PeripheralConnectedEvt.AdFlags">
+            <summary>
+            Last advertising flag detected before connection.
+            </summary>
+        </member>
+        <member name="P:LayerCentral.Messaging.Event.PeripheralDisconnectedEvt.MacAddress">
+            <inheritdoc/>
+        </member>
+        <member name="P:LayerCentral.Messaging.Event.PeripheralDisconnectedEvt.ConnId">
+            <inheritdoc/>
+        </member>
+        <member name="P:LayerCentral.Messaging.Event.PeripheralDiscoveryEvt.MacAddress">
+            <inheritdoc/>
+        </member>
+        <member name="P:LayerCentral.Messaging.Event.PeripheralDiscoveryEvt.ConnId">
+            <inheritdoc/>
+        </member>
+        <member name="P:LayerCentral.Messaging.Event.PeripheralDiscoveryEvt.DiscoveryStatus">
+            <summary>
+            GATT services discovery status.
+            </summary>
+        </member>
+        <member name="P:LayerCentral.Messaging.Event.PeripheralPairingEvt.MacAddress">
+            <inheritdoc/>
+        </member>
+        <member name="P:LayerCentral.Messaging.Event.PeripheralPairingEvt.ConnId">
+            <inheritdoc/>
+        </member>
+        <member name="P:LayerCentral.Messaging.Event.PeripheralPairingEvt.PairingStatus">
+            <summary>
+            Pairing status.
+            </summary>
+        </member>
+        <member name="P:LayerCentral.Messaging.Event.PeripheralSubscriptionEvt.MacAddress">
+            <inheritdoc/>
+        </member>
+        <member name="P:LayerCentral.Messaging.Event.PeripheralSubscriptionEvt.ConnId">
+            <inheritdoc/>
+        </member>
+        <member name="P:LayerCentral.Messaging.Event.PeripheralSubscriptionEvt.SubscriptionStatus">
+            <summary>
+            GATT characteristics subscription status.
+            </summary>
+        </member>
+        <member name="P:LayerCentral.Messaging.Event.PeripheralTimingChangedEvt.MacAddress">
+            <inheritdoc/>
+        </member>
+        <member name="P:LayerCentral.Messaging.Event.PeripheralTimingChangedEvt.ConnId">
+            <inheritdoc/>
+        </member>
+        <member name="P:LayerCentral.Messaging.Event.PeripheralTimingChangedEvt.ConnParams">
+            <summary>
+            Connection parameters.
+            </summary>
+        </member>
+        <member name="T:LayerCentral.Messaging.MessageProvider.IAllMessageProvider">
+            <summary>
+            Interface that requires to implement both <see cref="T:LayerCentral.Messaging.EventProvider.IAllEvtProvider"/> and
+            <see cref="T:LayerCentral.Messaging.ResponseProvider.IAllRspProvider"/>.
+            </summary>
+        </member>
+        <member name="P:LayerCentral.Messaging.Request.DongleAutoConnectReq.AutoConnect">
+            <summary>
+            <see langword="true"/> to automatically connect Bluetooth dongles.
+            </summary>
+        </member>
+        <member name="P:LayerCentral.Messaging.Request.DongleAutoDetectReq.AutoDetect">
+            <summary>
+            <see langword="true"/> to automatically detect Bluetooth dongles.
+            </summary>
+        </member>
+        <member name="P:LayerCentral.Messaging.Request.DongleBondPolicyReq.StaleBondPolicy">
+            <summary>
+            <see langword="true"/> to automatically remove stale bonds of Bluetooth dongles.
+            </summary>
+        </member>
+        <member name="P:LayerCentral.Messaging.Request.DongleDisconnectAllOnStartupReq.DisconnectAllOnStartup">
+            <summary>
+            <see langword="true"/> to automatically disconnect Bluetooth
+            devices that are already connected to the dongle on startup.
+            </summary>
+        </member>
+        <member name="T:LayerCentral.Messaging.Request.MountableSetAttHandlesReq">
+            <summary>
+            Set ATT handles to interact with a device (ATT server)
+            without having to perform services and characteristics discovery.
+            </summary>
+        </member>
+        <member name="P:LayerCentral.Messaging.Request.MountableSetAttHandlesReq.Mac">
+            <summary>
+            Device MAC address.
+            </summary>
+        </member>
+        <member name="P:LayerCentral.Messaging.Request.MountableSetAttHandlesReq.AttHandles">
+            <summary>
+            Sylvac Metrology Service ATT handles.
+            </summary>
+        </member>
+        <member name="T:LayerCentral.Messaging.Request.MountableSetReq">
+            <summary>
+            Adds or update a device in the list of devices to mount.
+            </summary>
+        </member>
+        <member name="P:LayerCentral.Messaging.Request.MountableSetReq.Mac">
+            <summary>
+            Peripheral MAC address, or "any" address (only zeros) to use the provided
+            values as default configuration for all peripherals.
+            </summary>
+        </member>
+        <member name="P:LayerCentral.Messaging.Request.MountableSetReq.AutoConnect">
+            <summary>
+            <see langword="true"/> to connect the device automatically.
+            </summary>
+        </member>
+        <member name="P:LayerCentral.Messaging.Request.MountableSetReq.AutoDiscover">
+            <summary>
+            <see langword="true"/> to discover the service automatically.
+            </summary>
+        </member>
+        <member name="P:LayerCentral.Messaging.Request.MountableSetReq.AutoSubscribe">
+            <summary>
+            <see langword="true"/> to subscribe to the characteristics automatically.
+            </summary>
+        </member>
+        <member name="P:LayerCentral.Messaging.Request.MountableSetReq.BondCond">
+            <summary>
+            Condition to initiate bonding.
+            </summary>
+        </member>
+        <member name="P:LayerCentral.Messaging.Request.MountableSetReq.AllowSkipSubscribe">
+            <inheritdoc/>
+        </member>
+        <member name="P:LayerCentral.Messaging.Request.MountableSetReq.AutoSubChars">
+            <inheritdoc cref="P:LayerCentral.Configuration.IBleMountConfig.AutoSubChars"/>
+        </member>
+        <member name="T:LayerCentral.Messaging.Request.MountableUnsetAttHandlesReq">
+            <summary>
+            Set cached ATT handles to interact with an ATT server.
+            </summary>
+            <remarks>
+            Allows to skip services discovery.
+            </remarks>
+        </member>
+        <member name="P:LayerCentral.Messaging.Request.MountableUnsetAttHandlesReq.Mac">
+            <summary>
+            Device MAC address.
+            </summary>
+        </member>
+        <member name="T:LayerCentral.Messaging.Request.MountableUnsetReq">
+            <summary>
+            Removes a device from the list of devices to mount.
+            </summary>
+        </member>
+        <member name="T:LayerCentral.Messaging.ResponseProvider.IAllRspProvider">
+            <summary>
+            Interface that requires to implement all interfaces
+            of <see cref="N:LayerCentral.Messaging.ResponseProvider"/>.
+            </summary>
+        </member>
+        <member name="P:LayerCentral.Peripheral.BondablePeripheral.MacAddress">
+            <summary>
+            Device MAC address.
+            </summary>
+        </member>
+        <member name="P:LayerCentral.Peripheral.BondablePeripheral.ConnId">
+            <summary>
+            Connection ID.
+            </summary>
+        </member>
+        <member name="P:LayerCentral.Peripheral.BondablePeripheral.ConnParams">
+            <summary>
+            Connection parameters.
+            </summary>
+        </member>
+        <member name="P:LayerCentral.Peripheral.BondablePeripheral.LastAdFlags">
+            <summary>
+            Last advertising flags detected for this device.
+            </summary>
+        </member>
+        <member name="P:LayerCentral.Peripheral.BondablePeripheral.IsBusy">
+            <summary>
+            <see langword="true"/> when GATT operations or pairing are being performed.
+            </summary>
+        </member>
+        <member name="P:LayerCentral.Peripheral.BondablePeripheral.HasDeletedBond">
+            <summary>
+            <see langword="true"/> if a bond has been deleted.
+            </summary>
+        </member>
+        <member name="P:LayerCentral.Peripheral.GattDiscoveryStatus.IsRunning">
+            <summary>
+            <see langword="true"/> when discovering the GATT characteristics.
+            </summary>
+        </member>
+        <member name="P:LayerCentral.Peripheral.GattDiscoveryStatus.IsDone">
+            <summary>
+            <see langword="true"/> when the GATT characteristics are discovered.
+            </summary>
+        </member>
+        <member name="F:LayerCentral.Peripheral.GattPeripheral.MaxDiscoveryAttempts">
+            <summary>
+            Maximum number of discovery attempts.
+            </summary>
+        </member>
+        <member name="F:LayerCentral.Peripheral.GattPeripheral.MaxSubscriptionAttempts">
+            <summary>
+            Maximum number of subscription attempts.
+            </summary>
+        </member>
+        <member name="F:LayerCentral.Peripheral.GattPeripheral.MaxGattWrongState">
+            <summary>
+            Maximum number of GATT wrong state errors.
+            </summary>
+        </member>
+        <member name="P:LayerCentral.Peripheral.GattPeripheral.MacAddress">
+            <summary>
+            Device MAC address.
+            </summary>
+        </member>
+        <member name="P:LayerCentral.Peripheral.GattPeripheral.ConnId">
+            <summary>
+            Connection ID.
+            </summary>
+        </member>
+        <member name="P:LayerCentral.Peripheral.GattPeripheral.IsBusy">
+            <summary>
+            <see langword="true"/> when GATT operations or pairing are being performed.
+            </summary>
+        </member>
+        <member name="P:LayerCentral.Peripheral.GattPeripheral.NbDiscoveryAttempts">
+            <summary>
+            Number of discovery attempts.
+            </summary>
+        </member>
+        <member name="P:LayerCentral.Peripheral.GattPeripheral.NbSubscriptionAttempts">
+            <summary>
+            Number of subscription attempts.
+            </summary>
+        </member>
+        <member name="P:LayerCentral.Peripheral.GattPeripheral.NbGattWrongState">
+            <summary>
+            Number of GATT wrong state errors.
+            </summary>
+        </member>
+        <member name="P:LayerCentral.Peripheral.GattSubscriptionStatus.IsRunning">
+            <summary>
+            <see langword="true"/> when subscribing to the GATT characteristics.
+            </summary>
+        </member>
+        <member name="P:LayerCentral.Peripheral.GattSubscriptionStatus.IsDone">
+            <summary>
+            <see langword="true"/> when subscribed to the GATT characteristics.
+            </summary>
+        </member>
+        <member name="F:LayerCentral.Peripheral.MountablePeripheral.AttHandleCacheMs">
+            <summary>
+            Maximum time to keep cached ATT handles after the disconnection of a peripheral, in milliseconds.
+            </summary>
+            <remarks>
+            Cached ATT handles allow to skip services discovery.
+            </remarks>
+        </member>
+        <member name="P:LayerCentral.Peripheral.MountablePeripheral.MacAddress">
+            <summary>
+            Device MAC address.
+            </summary>
+        </member>
+        <member name="P:LayerCentral.Peripheral.MountablePeripheral.ConnId">
+            <summary>
+            Connection ID.
+            </summary>
+        </member>
+        <member name="P:LayerCentral.Peripheral.MountablePeripheral.IsBusy">
+            <summary>
+            <see langword="true"/> when GATT operations or pairing are being performed.
+            </summary>
+        </member>
+        <member name="M:LayerCentral.Peripheral.MountablePeripheral.CheckReuseHandles">
+            <summary>
+            Returns <see langword="true"/> if ATT handles located in <see cref="P:LayerCentral.Peripheral.MountablePeripheral.MountConfig"/>
+            may be reused instead of performing services discovery.
+            </summary>
+        </member>
+        <member name="T:LayerCentral.Peripheral.PairingStatus">
+            <summary>
+            Bonding and pairing status.
+            </summary>
+            <remarks>
+            <list type="bullet">
+            <item>
+                <term>Paired</term> means that a connection is encrypted.
+            </item>
+            <item>
+                <term>Bonded</term> means that encryption keys are recorded
+                on the Bluetooth central (dongle) to encrypt the current
+                and the next connections.
+            </item>
+            </list>
+            </remarks>
+        </member>
+        <member name="P:LayerCentral.Peripheral.PairingStatus.IsPairing">
+            <summary>
+            <see langword="true"/> when pairing.
+            </summary>
+            <remarks>
+            Set to <see langword="true"/> when sending a <see cref="T:BgApi.ble_msg_sm_encrypt_start_cmd_t"/>.
+            Set to <see langword="false"/> when receiving:
+            <list type="bullet">
+            <item>a <see cref="T:BgApi.ble_msg_connection_status_evt_t"/> event with <see cref="F:BgApi.ble_msg_connection_status_evt_t.flags"/>
+            containing the <see cref="F:BgApi.connection_connstatus.connection_encrypted"/> flag;</item>
+            <item>a <see cref="T:BgApi.ble_msg_sm_bonding_fail_evt_t"/> event;</item>
+            <item>a <see cref="T:BgApi.ble_msg_connection_disconnected_evt_t"/> event.</item>
+            </list>
+            </remarks>
+        </member>
+        <member name="P:LayerCentral.Peripheral.PairingStatus.IsPaired">
+            <summary>
+            <see langword="true"/> if paired.
+            </summary>
+        </member>
+        <member name="P:LayerCentral.Peripheral.PairingStatus.IsBonded">
+            <summary>
+            <see langword="true"/> if bonded.
+            </summary>
+        </member>
+        <member name="P:LayerCentral.Peripheral.PairingStatus.IsDeletingBond">
+            <summary>
+            <see langword="true"/> when deleting bond.
+            </summary>
+        </member>
+    </members>
+</doc>

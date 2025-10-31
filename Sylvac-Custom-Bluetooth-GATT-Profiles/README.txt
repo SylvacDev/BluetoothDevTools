@@ -6,10 +6,10 @@
 
 1. First you may find some useful information at the following websites
 
-Sylvac profiles use background:         https://www.sylvac.ch/products/bluetooth-profiles
-Sylvac instruments background:          https://www.sylvac.ch/products/digital-indicators/digital-indicator-s_dial-work-smart
+Sylvac Bluetooth use background:        https://www.sylvac.ch/data-transmission-software/
+Sylvac instruments background:          https://www.sylvac.ch/product/digital-indicators-s_dial-work-smart/
 Bluetooth technology background:        https://www.bluetooth.com/
-Bluetooth dongle by Sylvac:             https://www.sylvac.ch/products/connections/bluetooth
+Bluetooth dongle by Sylvac:             https://www.sylvac.ch/product/dongle-smart/
 
 
 
@@ -28,7 +28,7 @@ Additional information:                 Various\MEM-PM 292-1538-01  Sylvac BT Sm
 
 3. Develop on the operating system and Bluetooth hardware of your choice
  
- a. WINDOWS through BLED112 Bluetooth Low Energy dongle
+ a. WINDOWS through BLED112 Bluetooth Low Energy dongle (BT4.0) or BL654 (BT5) provided by Sylvac (981-7100/981-7102)
 		See download "Windows – BLED112 dongle SDK" (support by Silicon Labs and Sylvac)
  
  b. WINDOWS through Sylvac communication DLL
@@ -39,4 +39,4 @@ Additional information:                 Various\MEM-PM 292-1538-01  Sylvac BT Sm
         See download "Other OS and platforms" for some useful links
  
  d. Any OS through other Bluetooth Low Energy dongle
-		See the corresponding API on the manufacturer website (no support by Sylvac)
+		See the corresponding API on the dongle manufacturer website (no support by Sylvac)

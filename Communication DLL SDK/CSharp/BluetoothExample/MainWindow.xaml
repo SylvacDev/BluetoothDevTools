@@ -14,14 +14,14 @@
 
         <!-- Dongles view -->
         <StackPanel>
-            <TextBlock Text="Dongles" FontSize="15"/>
+            <TextBlock Text="Dongles" FontSize="15" Margin="0,0,0,5"/>
             <ComboBox ItemsSource="{Binding DongleList}" DisplayMemberPath="Mac" SelectedValue="{Binding SelectedDongle}"
                        Width="200" HorizontalAlignment="Left"/>
         </StackPanel>
         
         <!-- Connections view-->
         <StackPanel>
-            <TextBlock Text="Connected instruments" FontSize="15"/>
+            <TextBlock Text="Connected instruments" FontSize="15" Margin="0,10,0,5"/>
             <ItemsControl ItemsSource="{Binding ConnectedInstrumentsList}">
                 <ItemsControl.ItemTemplate>
                     <DataTemplate>
@@ -41,27 +41,39 @@
                             <TextBlock Text="{Binding Mac}" FontFamily="Consolas"/>
                             <Button Content="Disconnect" Command="{Binding ViewModel.DisconnectInstrumentCommand, RelativeSource={RelativeSource AncestorType=local:MainWindow}}"
                                     CommandParameter="{Binding .}" Margin="5,0,0,0"/>
-                            <TextBlock Text="{Binding NumericalValue}" Margin="5,0,0,0"/>
+                            <TextBlock Text="{Binding NumericalValue, StringFormat={}{0:F3}}" Margin="10,0,0,0"/>
                             <TextBlock Text="{Binding MeasurementParams.Unit}" Margin="5,0,0,0"/>
                             <TextBlock Text="{Binding MeasurementParams.MeasuringMode}" Margin="5,0,0,0"/>
-                            <TextBlock Text=" - " Margin="5,0,0,0"/>
-                            <TextBlock Text="Data send from the button : " Margin="5,0,0,0"/>
+                            <TextBlock Text="Data from the button : " Margin="10,0,0,0"/>
                             <TextBlock Text="{Binding SmsData}" Background="#eee"/>
+                            <TextBlock Text="Response : " Margin="10,0,0,0"/>
+                            <TextBlock Text="{Binding SmsResp}" Background="#eee"/>
                         </StackPanel>
                     </DataTemplate>
                 </ItemsControl.ItemTemplate>
             </ItemsControl>
+
+            <!-- Send a command to all connected instruments -->
+            <TextBlock Text="Sylvac command"/>
+            <StackPanel Orientation="Horizontal">
+                <TextBox Text="{Binding RequestText, UpdateSourceTrigger=PropertyChanged}" Width="100">
+                    <TextBox.InputBindings>
+                        <KeyBinding Key="Return" Command="{Binding SendRequestCommand}"/>
+                    </TextBox.InputBindings>
+                </TextBox>
+                <Button Command="{Binding SendRequestCommand}" Content="Send to all" Margin="5,0,0,0"/>
+            </StackPanel>
         </StackPanel>
 
         <!-- Scan view-->
         <StackPanel>
-            <TextBlock Text="Scan" FontSize="15"/>
+            <TextBlock Text="Scan" FontSize="15" Margin="0,10,0,5"/>
             <StackPanel Orientation="Horizontal">
                 <Button Command="{Binding StartScanCommand}" Content="Start scan"/>
                 <Button Command="{Binding StopScanCommand}" Content="Stop scan" Margin="5,0,0,0"/>
                 <Button Command="{Binding ClearScanCommand}" Content="Clear scan" Margin="5,0,0,0"/>
             </StackPanel>
-            <ItemsControl ItemsSource="{Binding InstrumentAdvertisingList}">
+            <ItemsControl ItemsSource="{Binding InstrumentAdvertisingList}" Margin="0,5,0,0">
                 <ItemsControl.ItemTemplate>
                     <DataTemplate>
                         <StackPanel Orientation="Horizontal">

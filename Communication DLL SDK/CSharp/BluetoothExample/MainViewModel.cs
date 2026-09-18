@@ -28,6 +28,7 @@ namespace BluetoothExample
         public SimpleCommand ClearScanCommand { get; }
         public SimpleCommand ConnectInstrumentCommand { get; }
         public SimpleCommand DisconnectInstrumentCommand { get; }
+        public SimpleCommand SendRequestCommand { get; }
 
         public MainViewModel()
         {
@@ -52,7 +53,25 @@ namespace BluetoothExample
             ClearScanCommand = new SimpleCommand(o => ClearScan());
             ConnectInstrumentCommand = new SimpleCommand(ConnectInstrument);
             DisconnectInstrumentCommand = new SimpleCommand(DisconnectInstrument);
+            SendRequestCommand = new SimpleCommand(o => SendRequestToAll());
         }
+
+        /// <summary>
+        /// Command to send to instruments.
+        /// </summary>
+        public string RequestText
+        {
+            get { return _requestText; }
+            set
+            {
+                if (_requestText != value)
+                {
+                    _requestText = value;
+                    NotifyPropertyChanged(nameof(RequestText));
+                }
+            }
+        }
+        private string _requestText = "ID?";
 
         public BleCentral? SelectedDongle
         {
@@ -146,6 +165,22 @@ namespace BluetoothExample
             {
                 blePeripheral.StartDisconnect();
                 SelectedDongle?.RemovePeripheral(blePeripheral);
+            }
+        }
+
+        /// <summary>
+        /// Sends a command to all instruments.
+        /// </summary>
+        private void SendRequestToAll()
+        {
+            if (string.IsNullOrWhiteSpace(RequestText))
+            {
+                return;
+            }
+
+            foreach (var blePeripheral in ConnectedInstrumentsList)
+            {
+                blePeripheral.SendCommand(RequestText);
             }
         }
 

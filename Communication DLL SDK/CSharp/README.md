@@ -6,6 +6,8 @@ This document shows how to use the `SylvacBleLib` Bluetooth library. This librar
 
 `SylvacBleLib` is still in beta version and the API may change without further notice.
 
+**[Download the compiled BluetoothExample app](BluetoothExample.zip)**
+
 ## 2. Install
 
 Put the `SylvacBleLib` folder found in the zip archive of the SDK at the root of your solution.

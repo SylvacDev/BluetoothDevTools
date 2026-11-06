@@ -28,12 +28,13 @@ Additional information:                 Various\MEM-PM 292-1538-01  Sylvac BT Sm
 
 3. Develop on the operating system and Bluetooth hardware of your choice
  
- a. WINDOWS through the Sylvac C# library SylvacBleLib and a Sylvac USB dongle
-		See folder csharp (support by Sylvac)
-		Dongles: Bluetooth 5 SMART dongle (981-7102, 981-7103) or Bluetooth 4 dongle BLED112 (981-7100)
+ a. Recommended: Sylvac libraries with a Sylvac USB dongle (no Bluetooth programming needed)
+		See folder libraries (support by Sylvac)
+		Dongles: Bluetooth 5 SMART dongle, BL654 module, BT5 (981-7102, 981-7103)
+		         or Bluetooth 4 dongle, BLED112 module, BT4 (981-7100)
 
- b. Low level, through the BGAPI serial protocol of the Sylvac USB dongle
-		See folder bgapi-dongle-sdk (support by Silicon Labs and Sylvac)
+ b. Low level, through the Bluegiga BGAPI protocol of the BLED112 (BT4) dongle only
+		See folder bled112-bt4-sdk (support by Silicon Labs and Sylvac)
 
  c. Any OS through Native API (Windows, Mac OS, iOS, Android, Linux, etc.) or cross-platform frameworks
 		See the corresponding API on the OS provider website (no support by Sylvac)

@@ -9,20 +9,41 @@ With these tools your application can:
 - receive the value sent when the operator presses the instrument button,
 - send commands to the instrument (for example `ID?`) and read its answer.
 
+## Sylvac USB dongles
+
+Sylvac sells two USB dongles. Both are supported by the Sylvac libraries, so the same software works with either of them.
+
+| Dongle | Bluetooth | Inside | Sylvac ref. | Instruments at the same time |
+|---|---|---|---|---|
+| Bluetooth 5 SMART dongle | **Bluetooth 5** (BT5) | BL654 module (Ezurio, formerly Laird Connectivity) | 981-7102, 981-7103 (external antenna) | up to 16, long range mode |
+| Bluetooth 4 dongle | **Bluetooth 4.0** (BT4) | BLED112 (Silicon Labs Bluegiga) | 981-7100 | up to 8 |
+
+Both dongles appear as a virtual serial port: `COMx` on Windows, `/dev/ttyACMx` on Linux. More information on the [dongle product page](https://www.sylvac.ch/product/dongle-smart/).
+
 ## Choose your path
 
-| You want to... | Use | Platform |
-|---|---|---|
-| Build a Windows application in C# / .NET (recommended) | [SylvacBleLib](csharp) with a Sylvac USB dongle | Windows |
-| Talk to the instruments with the native Bluetooth stack of any platform (Android, iOS, macOS, Linux, Windows, embedded) | [Sylvac custom Bluetooth GATT profiles](gatt-profiles) and the [list of native APIs and libraries](docs/MAN-DeveloperResources_OS.pdf) | Any |
-| Drive the dongle at a low level with the BGAPI serial protocol | [BGAPI dongle SDK](bgapi-dongle-sdk) | Any OS with a serial port |
-| Maintain an existing integration based on the C++ communication DLL | [C++ communication DLL](legacy/cpp-dll) (legacy, 2019) | Windows |
+```mermaid
+flowchart TD
+    A[Your software] --> B{Do you use a Sylvac USB dongle?}
+    B -->|"Yes: BL654 (BT5) or BLED112 (BT4)"| L["Sylvac libraries (recommended)<br/>libraries/"]
+    L --> CS["C# / .NET<br/>Windows"]
+    L --> RS["Rust, Python<br/>Windows, Linux (coming soon)"]
+    B -->|"No: built-in Bluetooth of a phone, tablet, Mac or PC"| G["Sylvac GATT profiles + native Bluetooth API<br/>gatt-profiles/, docs/"]
+    B -->|"Low level, BLED112 (BT4) only"| S["BLED112 BGAPI SDK<br/>bled112-bt4-sdk/"]
+```
 
-![Which resource to use](https://github.com/SylvacDev/BluetoothDevTools/assets/111576217/c834d79d-0fbe-49f9-a4f8-99c445f60ca8)
+| You want to... | Use | Dongles | Platforms |
+|---|---|---|---|
+| **Connect instruments through a Sylvac dongle (recommended)** | [Sylvac libraries](libraries) | BL654 (BT5) and BLED112 (BT4) | C# / .NET: Windows. Rust and Python: Windows, Linux (coming soon) |
+| Use the built-in Bluetooth of a phone, tablet, Mac or PC, without dongle | [Sylvac GATT profiles](gatt-profiles) and the [list of native APIs and libraries](docs/MAN-DeveloperResources_OS.pdf) | none | Android, iOS, macOS, Linux, Windows |
+| Program the BLED112 (BT4) dongle at low level with the Bluegiga BGAPI protocol | [BLED112 BGAPI SDK](bled112-bt4-sdk) | BLED112 (BT4) only | Windows |
+| Maintain an existing integration based on the C++ communication DLL | [C++ communication DLL](legacy/cpp-dll) (legacy, 2019) | BLED112 (BT4), or built-in Bluetooth on Windows 10 | Windows |
+
+The libraries hide all the Bluetooth details: you get instruments, values and commands, and the same code runs with the BT5 and the BT4 dongle. Low-level BGAPI programming is only useful in special cases and only covers the BLED112 (BT4).
 
 ## Quick start in C#
 
-A complete WPF example is available in [csharp](csharp), together with a [ready-to-run build](csharp/BluetoothExample.zip). The essentials look like this:
+A complete WPF example is available in [libraries/csharp](libraries/csharp), together with a [ready-to-run build](libraries/csharp/BluetoothExample.zip). The essentials look like this:
 
 ```cs
 using SylvacBleLib;
@@ -48,43 +69,36 @@ instrument.InstrumentResponseReceived += (s, e) => { /* e.Value */ };
 instrument.SendCommand("ID?");
 ```
 
-The [library guide](csharp/README.md) explains installation, threading and every step in detail. SylvacBleLib is still in beta and its API may change.
-
-## Hardware
-
-SylvacBleLib, the C++ DLL and the BGAPI SDK need a Sylvac USB dongle. Native Bluetooth development only needs the Bluetooth radio of your device.
-
-Sylvac offers two USB dongles, both supported by SylvacBleLib and the BGAPI SDK:
-
-- **Bluetooth 5 SMART dongle** (981-7102, and 981-7103 with external antenna): up to 16 instruments at the same time, long range mode.
-- **Bluetooth 4 dongle** (BLED112, 981-7100): up to 8 instruments at the same time.
-
-Both dongles speak the same BGAPI serial protocol, so the same software works with either of them.
-
-More information on the [dongle product page](https://www.sylvac.ch/product/dongle-smart/).
+The [library guide](libraries/csharp/README.md) explains installation, threading and every step in detail. SylvacBleLib is still in beta and its API may change.
 
 ## How Sylvac instruments talk Bluetooth
 
-Sylvac instruments advertise with a device name starting with `SY` (OEM instruments use `MTY`). Once connected they expose standard services (Device Information, Battery) and two Sylvac services:
+You only need this if you program the Bluetooth link yourself (native API or BGAPI). The libraries do it for you.
 
-- **Simple Data Service (SDS)**: the measured value, also broadcast in the advertising data.
-- **Sylvac Metrology Service (SMS)**: a text channel to send commands and receive answers, in plain ASCII terminated by a carriage return.
+- Sylvac instruments advertise a device name starting with `SY`. OEM compatible instruments use `MTY`.
+- The measured value is provided by the **Simple Data Service (SDS)**.
+- Commands and answers go through the **Sylvac Metrology Service (SMS)**, service `0x5000`: write the command on RemoteRequest `0x5012`, receive the answer on RemoteResponse `0x5013` (notify). DataSend `0x5010` (indicate) carries the value sent with the instrument button.
+- Sylvac base UUID: `C1B2xxxx-CAAF-6D0E-4C33-7DAE30052840`.
+- SMS strings are plain ASCII terminated by a carriage return (`0x0D`), sent in chunks of 20 bytes at most.
+- The instrument can be configured in SIMPLE (no pairing), PAIR or HID (keyboard) profile.
 
-The instrument can be configured in SIMPLE (no pairing), PAIR or HID (keyboard) profile. Start with [the README of the GATT profiles folder](gatt-profiles/README.txt), which gives the reading order of the specifications.
+Start with [the README of the GATT profiles folder](gatt-profiles/README.txt), which gives the reading order of the specifications.
 
 ## Repository content
 
 ```
-csharp/              SylvacBleLib (.NET) and the BluetoothExample WPF application
+libraries/           Sylvac libraries, for BL654 (BT5) and BLED112 (BT4) dongles
+  csharp/            SylvacBleLib (.NET) and the BluetoothExample WPF application
+  rust/              Rust library with its Python interface (coming soon)
 gatt-profiles/       Bluetooth profile, SDS and SMS specifications (PDF)
-bgapi-dongle-sdk/    BGAPI SDK and tools (Silicon Labs Bluegiga), dongle documentation
 docs/                Native Bluetooth APIs and libraries for other platforms
+bled112-bt4-sdk/     Bluegiga BGAPI SDK and tools, BLED112 (BT4) dongle only
 legacy/cpp-dll/      C++ communication DLL v1.45, headers and HTML API reference
 ```
 
 ## Support
 
-Sylvac supports SylvacBleLib, the C++ communication DLL, the dongles and the GATT profiles. Native development on other platforms is not supported by Sylvac, but the specifications in this repository contain everything needed. To get in touch, go to [sylvac.ch](https://www.sylvac.ch/data-transmission-software/).
+Sylvac supports its libraries, the C++ communication DLL, the dongles and the GATT profiles. Native development on other platforms is not supported by Sylvac, but the specifications in this repository contain everything needed. To get in touch, go to [sylvac.ch](https://www.sylvac.ch/data-transmission-software/).
 
 ## License
 

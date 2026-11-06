@@ -2,7 +2,7 @@ Sylvac Bluetooth library basic use
 =========================================
 
 ## 1. Introduction
-This document shows how to use the `SylvacBleLib` Bluetooth library. This library aims at connecting Sylvac Bluetooth instruments using a Sylvac USB dongle: the *Bluetooth 5 SMART dongle* (981-7102, 981-7103) or the *Bluetooth 4 dongle* (BLED112, 981-7100).
+This document shows how to use the `SylvacBleLib` Bluetooth library. This library aims at connecting Sylvac Bluetooth instruments using a Sylvac USB dongle: the *Bluetooth 5 SMART dongle* (BL654 module, BT5, ref. 981-7102 and 981-7103, up to 16 instruments) or the *Bluetooth 4 dongle* (BLED112 module, BT4, ref. 981-7100, up to 8 instruments). The same code works with both dongles.
 
 `SylvacBleLib` is still in beta version and the API may change without further notice.
 

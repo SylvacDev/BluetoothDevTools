@@ -1,5 +1,6 @@
 LEGACY: this DLL (v1.45, 2019) is kept for existing integrations and is no longer developed.
-New projects should use SylvacBleLib, see folder csharp at the root of the repository.
+New projects should use SylvacBleLib, see folder libraries/csharp of the repository.
+This DLL works with the BLED112 (Bluetooth 4) dongle, or with the built-in Bluetooth on Windows 10.
 
 - DLL SYLVAC BT x.xx:  DLL to communicate with our instruments via the customer's own application
 - TestDLLCSharp.zip : C# application test example

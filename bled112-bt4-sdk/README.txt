@@ -3,6 +3,15 @@
 / READ ME FIRST                                                                /
 /******************************************************************************/
 
+IMPORTANT: this SDK is for the Bluetooth 4 dongle only (BLED112 module, BT4,
+Sylvac ref. 981-7100). It is a low-level access to the dongle through the
+Bluegiga BGAPI protocol.
+
+Most projects do not need it. The Sylvac libraries (folder libraries) are the
+recommended way: they work with both the Bluetooth 5 SMART dongle (BL654 module,
+BT5, ref. 981-7102 and 981-7103) and the Bluetooth 4 dongle (BLED112, BT4),
+without any Bluetooth programming.
+
 
 1. First you may be familiar with "Sylvac - Custom Bluetooth GATT profile"
    See folder gatt-profiles

@@ -9,8 +9,8 @@ is covered by the first section below that applies to it.
 -----------------------------------
 
 Applies to:
-  - csharp/BluetoothExample/  (all files)
-  - csharp/BluetoothExample.sln
+  - libraries/csharp/BluetoothExample/  (all files)
+  - libraries/csharp/BluetoothExample.sln
   - legacy/cpp-dll/TestDLLCSharp.zip
   - legacy/cpp-dll/Header/  (all files)
   - code snippets in the README files of this repository
@@ -40,7 +40,7 @@ SOFTWARE.
 Applies to all other files published by Sylvac SA in this repository, in
 particular:
   - the SylvacBleLib libraries and their XML documentation
-    (csharp/SylvacBleLib/, except System.IO.Ports.dll)
+    (libraries/csharp/SylvacBleLib/, except System.IO.Ports.dll)
   - the Sylvac communication DLL and its HTML API reference
     (legacy/cpp-dll/, except ftd2xx.dll)
   - the compiled BluetoothExample application (BluetoothExample.zip)
@@ -77,10 +77,10 @@ The following files are not owned by Sylvac SA. They are redistributed for
 convenience and remain subject to the license terms of their respective
 owners. Sylvac SA grants no rights on them.
 
-  - bgapi-dongle-sdk/BLED112/ble-1.10.0-153/  (Bluegiga Bluetooth
+  - bled112-bt4-sdk/BLED112/ble-1.10.0-153/  (Bluegiga Bluetooth
     Smart SDK, Silicon Laboratories Inc., including the bundled Qt, ICU,
     libusb and MinGW runtime libraries under their own licenses)
-  - Silicon Labs documents in bgapi-dongle-sdk/BLED112/
+  - Silicon Labs documents in bled112-bt4-sdk/BLED112/
     (BLED112 data sheet, BGAPI reference manual, release notes, UG208)
   - ftd2xx.dll  (Future Technology Devices International Ltd.)
   - System.IO.Ports.dll  (Microsoft Corporation, MIT License)

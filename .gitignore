@@ -17,4 +17,4 @@ __pycache__/
 .venv/
 *.egg-info/
 
-# .NET build output is ignored in csharp/.gitignore
+# .NET build output is ignored in libraries/csharp/.gitignore

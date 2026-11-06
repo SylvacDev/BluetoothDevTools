@@ -30,7 +30,7 @@ Additional information:                 Various\MEM-PM 292-1538-01  Sylvac BT Sm
  
  a. WINDOWS through the Sylvac C# library SylvacBleLib and a Sylvac USB dongle
 		See folder csharp (support by Sylvac)
-		Dongles: Bluetooth 5 SMART dongle (981-7102, 981-7103), or former BLED112 (BT4.0)
+		Dongles: Bluetooth 5 SMART dongle (981-7102, 981-7103) or Bluetooth 4 dongle BLED112 (981-7100)
 
  b. Low level, through the BGAPI serial protocol of the Sylvac USB dongle
 		See folder bgapi-dongle-sdk (support by Silicon Labs and Sylvac)

@@ -13,7 +13,7 @@ With these tools your application can:
 
 | You want to... | Use | Platform |
 |---|---|---|
-| Build a Windows application in C# / .NET (recommended) | [SylvacBleLib](csharp) with a Sylvac Bluetooth 5 dongle | Windows |
+| Build a Windows application in C# / .NET (recommended) | [SylvacBleLib](csharp) with a Sylvac USB dongle | Windows |
 | Talk to the instruments with the native Bluetooth stack of any platform (Android, iOS, macOS, Linux, Windows, embedded) | [Sylvac custom Bluetooth GATT profiles](gatt-profiles) and the [list of native APIs and libraries](docs/MAN-DeveloperResources_OS.pdf) | Any |
 | Drive the dongle at a low level with the BGAPI serial protocol | [BGAPI dongle SDK](bgapi-dongle-sdk) | Any OS with a serial port |
 | Maintain an existing integration based on the C++ communication DLL | [C++ communication DLL](legacy/cpp-dll) (legacy, 2019) | Windows |
@@ -54,8 +54,12 @@ The [library guide](csharp/README.md) explains installation, threading and every
 
 SylvacBleLib, the C++ DLL and the BGAPI SDK need a Sylvac USB dongle. Native Bluetooth development only needs the Bluetooth radio of your device.
 
-- **Bluetooth 5 SMART dongle** (981-7102, and 981-7103 with external antenna): current model, up to 16 instruments at the same time, long range mode. It understands the same BGAPI serial protocol as the former BLED112 dongle, so software written for the BLED112 can move to it.
-- **BLED112 dongle** (Bluetooth 4.0): former model, up to 8 instruments with the Sylvac firmware.
+Sylvac offers two USB dongles, both supported by SylvacBleLib and the BGAPI SDK:
+
+- **Bluetooth 5 SMART dongle** (981-7102, and 981-7103 with external antenna): up to 16 instruments at the same time, long range mode.
+- **Bluetooth 4 dongle** (BLED112, 981-7100): up to 8 instruments at the same time.
+
+Both dongles speak the same BGAPI serial protocol, so the same software works with either of them.
 
 More information on the [dongle product page](https://www.sylvac.ch/product/dongle-smart/).
 

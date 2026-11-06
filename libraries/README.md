@@ -9,7 +9,7 @@ They work with both Sylvac dongles, and the same code runs with either of them:
 
 | Folder | Language | Platforms | Content |
 |---|---|---|---|
-| [csharp](csharp) | C# / .NET | Windows | SylvacBleLib and the BluetoothExample WPF application |
+| [csharp](csharp) | C# / .NET | Windows, Linux (Linux coming soon with .NET 10) | SylvacBleLib and the BluetoothExample WPF application |
 | rust | Rust, Python | Windows, Linux | Compiled Rust library with its Python interface, Rust and Python examples (coming soon) |
 
 All libraries offer the same features:

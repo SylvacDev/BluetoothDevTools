@@ -1,0 +1,20 @@
+# OS files
+Thumbs.db
+desktop.ini
+.DS_Store
+
+# Editors
+.vs/
+.vscode/
+.idea/
+
+# Rust build output
+target/
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+*.egg-info/
+
+# .NET build output is ignored in csharp/.gitignore

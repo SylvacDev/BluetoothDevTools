@@ -1,0 +1,22 @@
+# Normalize text files to LF in the repository, native line endings on checkout.
+* text=auto
+
+# Scripts run on Linux keep LF.
+*.sh text eol=lf
+
+# Visual Studio files keep CRLF.
+*.sln text eol=crlf
+*.csproj text eol=crlf
+
+# Binaries, never touched.
+*.dll binary
+*.lib binary
+*.so binary
+*.exe binary
+*.pyd binary
+*.whl binary
+*.zip binary
+*.pdf binary
+*.png binary
+*.jpg binary
+*.jp2 binary

@@ -1,3 +1,6 @@
+LEGACY: this DLL (v1.45, 2019) is kept for existing integrations and is no longer developed.
+New projects should use SylvacBleLib, see folder csharp at the root of the repository.
+
 - DLL SYLVAC BT x.xx:  DLL to communicate with our instruments via the customer's own application
 - TestDLLCSharp.zip : C# application test example
 

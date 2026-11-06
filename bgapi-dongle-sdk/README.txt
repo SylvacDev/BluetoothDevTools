@@ -5,7 +5,7 @@
 
 
 1. First you may be familiar with "Sylvac - Custom Bluetooth GATT profile"
-   See download section
+   See folder gatt-profiles
 
 
 2. Once you got sufficient background and need to go through development steps, 

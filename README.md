@@ -13,16 +13,16 @@ With these tools your application can:
 
 | You want to... | Use | Platform |
 |---|---|---|
-| Build a Windows application in C# / .NET (recommended) | [SylvacBleLib](Communication%20DLL%20SDK/CSharp) with a Sylvac Bluetooth 5 dongle | Windows |
-| Talk to the instruments with the native Bluetooth stack of any platform (Android, iOS, macOS, Linux, Windows, embedded) | [Sylvac custom Bluetooth GATT profiles](Sylvac-Custom-Bluetooth-GATT-Profiles) | Any |
-| Drive the dongle at a low level with the BGAPI serial protocol | [BGAPI / BLED112 SDK](Windows-BLED112-dongle-SDK) | Any OS with a serial port |
-| Maintain an existing integration based on the C++ communication DLL | [C++ communication DLL](Communication%20DLL%20SDK/CPP_Legagy) (legacy, 2019) | Windows |
+| Build a Windows application in C# / .NET (recommended) | [SylvacBleLib](csharp) with a Sylvac Bluetooth 5 dongle | Windows |
+| Talk to the instruments with the native Bluetooth stack of any platform (Android, iOS, macOS, Linux, Windows, embedded) | [Sylvac custom Bluetooth GATT profiles](gatt-profiles) and the [list of native APIs and libraries](docs/MAN-DeveloperResources_OS.pdf) | Any |
+| Drive the dongle at a low level with the BGAPI serial protocol | [BGAPI dongle SDK](bgapi-dongle-sdk) | Any OS with a serial port |
+| Maintain an existing integration based on the C++ communication DLL | [C++ communication DLL](legacy/cpp-dll) (legacy, 2019) | Windows |
 
 ![Which resource to use](https://github.com/SylvacDev/BluetoothDevTools/assets/111576217/c834d79d-0fbe-49f9-a4f8-99c445f60ca8)
 
 ## Quick start in C#
 
-A complete WPF example is available in [Communication DLL SDK/CSharp](Communication%20DLL%20SDK/CSharp), together with a [ready-to-run build](Communication%20DLL%20SDK/CSharp/BluetoothExample.zip). The essentials look like this:
+A complete WPF example is available in [csharp](csharp), together with a [ready-to-run build](csharp/BluetoothExample.zip). The essentials look like this:
 
 ```cs
 using SylvacBleLib;
@@ -48,7 +48,7 @@ instrument.InstrumentResponseReceived += (s, e) => { /* e.Value */ };
 instrument.SendCommand("ID?");
 ```
 
-The [library guide](Communication%20DLL%20SDK/CSharp/README.md) explains installation, threading and every step in detail. SylvacBleLib is still in beta and its API may change.
+The [library guide](csharp/README.md) explains installation, threading and every step in detail. SylvacBleLib is still in beta and its API may change.
 
 ## Hardware
 
@@ -66,20 +66,16 @@ Sylvac instruments advertise with a device name starting with `SY` (OEM instrume
 - **Simple Data Service (SDS)**: the measured value, also broadcast in the advertising data.
 - **Sylvac Metrology Service (SMS)**: a text channel to send commands and receive answers, in plain ASCII terminated by a carriage return.
 
-The instrument can be configured in SIMPLE (no pairing), PAIR or HID (keyboard) profile. Start with [the README of the GATT profiles folder](Sylvac-Custom-Bluetooth-GATT-Profiles/README.txt), which gives the reading order of the specifications.
+The instrument can be configured in SIMPLE (no pairing), PAIR or HID (keyboard) profile. Start with [the README of the GATT profiles folder](gatt-profiles/README.txt), which gives the reading order of the specifications.
 
 ## Repository content
 
 ```
-Communication DLL SDK/
-  CSharp/                SylvacBleLib (.NET) and the BluetoothExample WPF application
-  CPP_Legagy/            C++ communication DLL v1.45, headers and HTML API reference
-Sylvac-Custom-Bluetooth-GATT-Profiles/
-                         Bluetooth profile, SDS and SMS specifications (PDF)
-Windows-BLED112-dongle-SDK/
-                         Silicon Labs Bluegiga BGAPI SDK and tools, BLED112 documentation
-MAN-DeveloperResources_OS.pdf
-                         Pointers to native Bluetooth APIs on other operating systems
+csharp/              SylvacBleLib (.NET) and the BluetoothExample WPF application
+gatt-profiles/       Bluetooth profile, SDS and SMS specifications (PDF)
+bgapi-dongle-sdk/    BGAPI SDK and tools (Silicon Labs Bluegiga), dongle documentation
+docs/                Native Bluetooth APIs and libraries for other platforms
+legacy/cpp-dll/      C++ communication DLL v1.45, headers and HTML API reference
 ```
 
 ## Support

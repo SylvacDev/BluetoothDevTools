@@ -2,7 +2,7 @@ Sylvac Bluetooth library basic use
 =========================================
 
 ## 1. Introduction
-This document shows how to use the `SylvacBleLib` Bluetooth library. This library aims at connecting Sylvac Bluetooth instruments using the *Silabs Bluegiga BLED112* Bluetooth 4 dongle or the *Laird Connectivity (Zephyr)* Bluetooth 5 dongle.
+This document shows how to use the `SylvacBleLib` Bluetooth library. This library aims at connecting Sylvac Bluetooth instruments using a Sylvac USB dongle: the *Bluetooth 5 SMART dongle* (981-7102, 981-7103) or the former *BLED112* Bluetooth 4 dongle.
 
 `SylvacBleLib` is still in beta version and the API may change without further notice.
 
@@ -10,9 +10,9 @@ This document shows how to use the `SylvacBleLib` Bluetooth library. This librar
 
 ## 2. Install
 
-Put the `SylvacBleLib` folder found in the zip archive of the SDK at the root of your solution.
+Copy the `SylvacBleLib` folder of this repository at the root of your solution.
 
-You need to reference all DLLs in the `SylvacBleLib` folder (found in the SDK), except the `dllres` folder.
+You need to reference all DLLs in the `SylvacBleLib` folder, except the `dllres` folder.
 
 Add the following post-build event to your project :
 

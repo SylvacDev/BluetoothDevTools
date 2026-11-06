@@ -22,15 +22,7 @@ Both dongles appear as a virtual serial port: `COMx` on Windows, `/dev/ttyACMx` 
 
 ## Choose your path
 
-```mermaid
-flowchart TD
-    A[Your software] --> B{Do you use a Sylvac USB dongle?}
-    B -->|"Yes: BL654 (BT5) or BLED112 (BT4)"| L["Sylvac libraries (recommended)<br/>libraries/"]
-    L --> CS["C# / .NET<br/>Windows"]
-    L --> RS["Rust library, called from Python<br/>Windows, Linux (coming soon)"]
-    B -->|"No: built-in Bluetooth of a phone, tablet, Mac or PC"| G["Sylvac GATT profiles + native Bluetooth API<br/>gatt-profiles/, docs/"]
-    B -->|"Low level, BLED112 (BT4) only"| S["BLED112 BGAPI SDK<br/>bled112-bt4-sdk/"]
-```
+<p align="center"><img src="docs/developer-paths.svg" width="900" alt="Recommended path: Windows or Linux, Sylvac libraries (C# / .NET 10 on Windows, Rust library called from Python on Windows and Linux), Bluetooth 5 SMART dongle BL654 (BT5, 981-7102 / 981-7103, up to 16 instruments) or Bluetooth 4 dongle BLED112 (BT4, 981-7100, up to 8 instruments). Low level: BGAPI SDK for the BLED112 (BT4) only. Without dongle: native Bluetooth API or cross-platform framework with the Sylvac GATT profiles. All paths use the Sylvac custom Bluetooth GATT profile (SDS, SMS)."></p>
 
 | You want to... | Use | Dongles | Platforms |
 |---|---|---|---|

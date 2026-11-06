@@ -1,0 +1,93 @@
+Sylvac Bluetooth Developer Tools
+Copyright (c) 2017-2026 Sylvac SA. All rights reserved where not stated otherwise.
+
+This repository contains material under three different licenses. Each file
+is covered by the first section below that applies to it.
+
+
+1. SAMPLE SOURCE CODE (MIT License)
+-----------------------------------
+
+Applies to:
+  - Communication DLL SDK/CSharp/BluetoothExample/  (all files)
+  - Communication DLL SDK/CSharp/BluetoothExample.sln
+  - Communication DLL SDK/CPP_Legagy/TestDLLCSharp.zip
+  - Communication DLL SDK/CPP_Legagy/Header/  (all files)
+  - code snippets in the README files of this repository
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+
+2. SYLVAC LIBRARIES AND DOCUMENTATION (Sylvac Free License)
+-----------------------------------------------------------
+
+Applies to all other files published by Sylvac SA in this repository, in
+particular:
+  - the SylvacBleLib libraries and their XML documentation
+    (Communication DLL SDK/CSharp/SylvacBleLib/, except System.IO.Ports.dll)
+  - the Sylvac communication DLL and its HTML API reference
+    (Communication DLL SDK/CPP_Legagy/, except ftd2xx.dll)
+  - the compiled BluetoothExample application (BluetoothExample.zip)
+  - the Sylvac documents (PDF files whose reference starts with MEM-PM,
+    SPE-PM, INS-PM, MAN- or SYL-, and the user manual extract)
+
+Sylvac SA grants you, free of charge, a worldwide, non-exclusive,
+non-transferable right to:
+  a) use these files to develop, test and run software that communicates
+     with Sylvac instruments or Sylvac-compatible instruments;
+  b) redistribute the libraries, unmodified, as part of such software,
+     to your own customers and users, without any fee owed to Sylvac SA;
+  c) copy and share the documentation, unmodified, for the same purpose.
+
+You may not:
+  - modify, decompile, disassemble or reverse engineer the libraries, except
+    to the extent expressly permitted by applicable law;
+  - sell or license the libraries or the documentation on their own;
+  - remove or alter copyright or trademark notices.
+
+Sylvac SA keeps all intellectual property rights on these files. No right
+to use the Sylvac name or trademarks is granted, except to state that your
+software is compatible with Sylvac instruments.
+
+These files are provided "as is", without warranty of any kind, express or
+implied. In no event shall Sylvac SA be liable for any damages arising from
+their use, to the extent permitted by applicable law.
+
+
+3. THIRD-PARTY COMPONENTS (their own licenses)
+----------------------------------------------
+
+The following files are not owned by Sylvac SA. They are redistributed for
+convenience and remain subject to the license terms of their respective
+owners. Sylvac SA grants no rights on them.
+
+  - Windows-BLED112-dongle-SDK/BLED112/ble-1.10.0-153/  (Bluegiga Bluetooth
+    Smart SDK, Silicon Laboratories Inc., including the bundled Qt, ICU,
+    libusb and MinGW runtime libraries under their own licenses)
+  - Silicon Labs documents in Windows-BLED112-dongle-SDK/BLED112/
+    (BLED112 data sheet, BGAPI reference manual, release notes, UG208)
+  - ftd2xx.dll  (Future Technology Devices International Ltd.)
+  - System.IO.Ports.dll  (Microsoft Corporation, MIT License)
+
+Original Bluegiga SDK packages and their license terms are available from
+Silicon Labs: https://www.silabs.com/wireless/bluetooth
+
+
+Bluetooth(R) is a registered trademark owned by the Bluetooth SIG, Inc.
+Any use of such marks by Sylvac SA is under license.

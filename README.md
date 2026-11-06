@@ -26,7 +26,7 @@ Both dongles appear as a virtual serial port: `COMx` on Windows, `/dev/ttyACMx` 
 flowchart TD
     A[Your software] --> B{Do you use a Sylvac USB dongle?}
     B -->|"Yes: BL654 (BT5) or BLED112 (BT4)"| L["Sylvac libraries (recommended)<br/>libraries/"]
-    L --> CS["C# / .NET<br/>Windows, Linux (Linux coming soon)"]
+    L --> CS["C# / .NET<br/>Windows"]
     L --> RS["Rust, Python<br/>Windows, Linux (coming soon)"]
     B -->|"No: built-in Bluetooth of a phone, tablet, Mac or PC"| G["Sylvac GATT profiles + native Bluetooth API<br/>gatt-profiles/, docs/"]
     B -->|"Low level, BLED112 (BT4) only"| S["BLED112 BGAPI SDK<br/>bled112-bt4-sdk/"]
@@ -34,7 +34,7 @@ flowchart TD
 
 | You want to... | Use | Dongles | Platforms |
 |---|---|---|---|
-| **Connect instruments through a Sylvac dongle (recommended)** | [Sylvac libraries](libraries) | BL654 (BT5) and BLED112 (BT4) | C# / .NET: Windows, Linux (Linux coming soon). Rust and Python: Windows, Linux (coming soon) |
+| **Connect instruments through a Sylvac dongle (recommended)** | [Sylvac libraries](libraries) | BL654 (BT5) and BLED112 (BT4) | C# / .NET: Windows. Rust and Python: Windows, Linux (coming soon) |
 | Use the built-in Bluetooth of a phone, tablet, Mac or PC, without dongle | [Sylvac GATT profiles](gatt-profiles) and the [list of native APIs and libraries](docs/MAN-DeveloperResources_OS.pdf) | none | Android, iOS, macOS, Linux, Windows |
 | Program the BLED112 (BT4) dongle at low level with the Bluegiga BGAPI protocol | [BLED112 BGAPI SDK](bled112-bt4-sdk) | BLED112 (BT4) only | Windows |
 | Maintain an existing integration based on the C++ communication DLL | [C++ communication DLL](legacy/cpp-dll) (legacy, 2019) | BLED112 (BT4), or built-in Bluetooth on Windows 10 | Windows |

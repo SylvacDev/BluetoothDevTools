@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="920" height="700" viewBox="0 0 920 700" font-family="'Segoe UI', Arial, Helvetica, sans-serif">
   <title>Sylvac Bluetooth developer paths</title>
-  <desc>Top to bottom. Platform, then software, then hardware, then Bluetooth, then instruments. Path 1, recommended: Windows or Linux, Sylvac libraries (C# / .NET 10 on Windows; Rust library called from Python on Windows and Linux; folder libraries/), to the Bluetooth 5 SMART dongle (BL654, BT5, ref. 981-7102 / 981-7103, up to 16 instruments) or the Bluetooth 4 dongle (BLED112, BT4, ref. 981-7100, up to 8 instruments). Path 2: Windows, Bluegiga BGAPI SDK, low level, BLED112 (BT4) only, folder bled112-bt4-sdk/. Path 3: Android, iOS, macOS, Linux or Windows, native Bluetooth API or cross-platform framework, folders gatt-profiles/ and docs/, to the built-in Bluetooth of the device. All paths reach the instruments through the Sylvac custom Bluetooth GATT profile (SDS, SMS).</desc>
+  <desc>Top to bottom. Platform, then software, then hardware, then Bluetooth, then instruments. Path 1, recommended: Windows or Linux, Sylvac libraries (C# / .NET 10 on Windows; Rust library called from Python on Windows and Linux; folder libraries/), to the Bluetooth 5 SMART dongle (BL654, BT5, ref. 981-7102 / 981-7103, up to 16 instruments) or the Bluetooth 4 dongle (BLED112, BT4, ref. 981-7100, up to 8 instruments). Path 2: Windows, Bluegiga BGAPI SDK, low level, BLED112 (BT4) only, folder dongles/BLED112/. Path 3: Android, iOS, macOS, Linux or Windows, native Bluetooth API or cross-platform framework, folders gatt-profiles/ and docs/, to the built-in Bluetooth of the device. All paths reach the instruments through the Sylvac custom Bluetooth GATT profile (SDS, SMS).</desc>
   <defs>
     <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
       <path d="M0,0 L10,5 L0,10 z" fill="#222"/>
@@ -71,7 +71,7 @@
     <text x="605" y="147" font-size="16" font-weight="700">BGAPI SDK</text>
     <text x="605" y="176" font-size="13">Bluegiga, low level</text>
     <text x="605" y="199" font-size="13" font-weight="700">BLED112 (BT4) only</text>
-    <text x="605" y="224" font-size="12" fill="#6b5a1e" font-family="Consolas, 'Courier New', monospace">bled112-bt4-sdk/</text>
+    <text x="605" y="224" font-size="12" fill="#6b5a1e" font-family="Consolas, 'Courier New', monospace">dongles/BLED112/</text>
   </g>
   <!-- Native API -->
   <g text-anchor="middle" fill="#222">

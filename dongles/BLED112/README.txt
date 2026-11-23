@@ -21,13 +21,13 @@ without any Bluetooth programming.
    please start with the following document
 
     step-by-step single connection to a Sylvac Bluetooth technology enabled instruments:
-                                        BLED112/MEM-PM 292-1806-04  Bluetooth Profile Quick Start Guide
+                                        MEM-PM 292-1806-04  Bluetooth Profile Quick Start Guide
 
 
 3. Develop on Windows
 
     Through BLED112 Bluetooth Low Energy dongle
-		According to BLED112 API, see folder \BLED112 (support by Silicon Labs and Sylvac)
+		According to BLED112 API, see folders "API doc" and ble-1.10.0-153 (support by Silicon Labs and Sylvac)
 
 
 Note:   Bluegiga SDK original installation files can be downloaded on Silicon Labs website 

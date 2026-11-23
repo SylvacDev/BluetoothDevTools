@@ -18,7 +18,7 @@ Sylvac sells two USB dongles. Both are supported by the Sylvac libraries, so the
 | Bluetooth 5 SMART dongle | **Bluetooth 5** (BT5) | BL654 module (Ezurio, formerly Laird Connectivity) | 981-7102, 981-7103 (external antenna) | up to 16, long range mode |
 | Bluetooth 4 dongle | **Bluetooth 4.0** (BT4) | BLED112 (Silicon Labs Bluegiga) | 981-7100 | up to 8 |
 
-Both dongles appear as a virtual serial port: `COMx` on Windows, `/dev/ttyACMx` on Linux. More information on the [dongle product page](https://www.sylvac.ch/product/dongle-smart/).
+Both dongles appear as a virtual serial port. More information in the [dongles folder](dongles/README.md) and on the [dongle product page on Sylvac website](https://www.sylvac.ch/product/dongle-smart/).
 
 ## Choose your path
 
@@ -28,7 +28,7 @@ Both dongles appear as a virtual serial port: `COMx` on Windows, `/dev/ttyACMx` 
 |---|---|---|---|
 | **Connect instruments through a Sylvac dongle (recommended)** | [Sylvac libraries](libraries) | BL654 (BT5) and BLED112 (BT4) | C# / .NET: Windows. Rust library called from Python: Windows, Linux (coming soon) |
 | Use the built-in Bluetooth of a phone, tablet, Mac or PC, without dongle | [Sylvac GATT profiles](gatt-profiles) and the [list of native APIs and libraries](docs/MAN-DeveloperResources_OS.pdf) | none | Android, iOS, macOS, Linux, Windows |
-| Program the BLED112 (BT4) dongle at low level with the Bluegiga BGAPI protocol | [BLED112 BGAPI SDK](bled112-bt4-sdk) | BLED112 (BT4) only | Windows |
+| Program the BLED112 (BT4) dongle at low level with the Bluegiga BGAPI protocol | [BLED112 BGAPI SDK](dongles/BLED112) | BLED112 (BT4) only | Windows |
 | Maintain an existing integration based on the C++ communication DLL | [C++ communication DLL](legacy/cpp-dll) (legacy, 2019) | BLED112 (BT4), or built-in Bluetooth on Windows 10 | Windows |
 
 The libraries hide all the Bluetooth details: you get instruments, values and commands, and the same code runs with the BT5 and the BT4 dongle. Low-level BGAPI programming is only useful in special cases and only covers the BLED112 (BT4).
@@ -84,7 +84,9 @@ libraries/           Sylvac libraries, for BL654 (BT5) and BLED112 (BT4) dongles
   rust/              Compiled Rust library, called from Python (coming soon)
 gatt-profiles/       Bluetooth profile, SDS and SMS specifications (PDF)
 docs/                Native Bluetooth APIs and libraries for other platforms
-bled112-bt4-sdk/     Bluegiga BGAPI SDK and tools, BLED112 (BT4) dongle only
+dongles/             Sylvac USB dongles
+  BL654/             Bluetooth 5 SMART dongle (BT5)
+  BLED112/           Bluetooth 4 dongle (BT4), with the Bluegiga BGAPI SDK and tools
 legacy/cpp-dll/      C++ communication DLL v1.45, headers and HTML API reference
 ```
 

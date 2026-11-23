@@ -34,7 +34,7 @@ Additional information:                 Various\MEM-PM 292-1538-01  Sylvac BT Sm
 		         or Bluetooth 4 dongle, BLED112 module, BT4 (981-7100)
 
  b. Low level, through the Bluegiga BGAPI protocol of the BLED112 (BT4) dongle only
-		See folder bled112-bt4-sdk (support by Silicon Labs and Sylvac)
+		See folder dongles\BLED112 (support by Silicon Labs and Sylvac)
 
  c. Any OS through Native API (Windows, Mac OS, iOS, Android, Linux, etc.) or cross-platform frameworks
 		See the corresponding API on the OS provider website (no support by Sylvac)

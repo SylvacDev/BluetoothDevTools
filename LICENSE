@@ -77,10 +77,10 @@ The following files are not owned by Sylvac SA. They are redistributed for
 convenience and remain subject to the license terms of their respective
 owners. Sylvac SA grants no rights on them.
 
-  - bled112-bt4-sdk/BLED112/ble-1.10.0-153/  (Bluegiga Bluetooth
+  - dongles/BLED112/ble-1.10.0-153/  (Bluegiga Bluetooth
     Smart SDK, Silicon Laboratories Inc., including the bundled Qt, ICU,
     libusb and MinGW runtime libraries under their own licenses)
-  - Silicon Labs documents in bled112-bt4-sdk/BLED112/
+  - Silicon Labs documents in dongles/BLED112/
     (BLED112 data sheet, BGAPI reference manual, release notes, UG208)
   - ftd2xx.dll  (Future Technology Devices International Ltd.)
   - System.IO.Ports.dll  (Microsoft Corporation, MIT License)

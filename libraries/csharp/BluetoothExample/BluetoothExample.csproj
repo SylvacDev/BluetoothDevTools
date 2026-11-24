@@ -2,30 +2,19 @@
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>net8.0-windows</TargetFramework>
+    <TargetFramework>net10.0-windows</TargetFramework>
     <Nullable>enable</Nullable>
     <UseWPF>true</UseWPF>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="System.IO.Ports" Version="8.0.0" />
+    <PackageReference Include="System.IO.Ports" Version="10.0.15" />
+    <PackageReference Include="System.Management" Version="10.0.15" />
   </ItemGroup>
 
   <ItemGroup>
-    <Reference Include="BgApi">
-      <HintPath>..\SylvacBleLib\BgApi.dll</HintPath>
-    </Reference>
-    <Reference Include="LayerCentral">
-      <HintPath>..\SylvacBleLib\LayerCentral.dll</HintPath>
-    </Reference>
-    <Reference Include="LayerConnection">
-      <HintPath>..\SylvacBleLib\LayerConnection.dll</HintPath>
-    </Reference>
     <Reference Include="CoreWpfUtils">
       <HintPath>..\SylvacBleLib\CoreWpfUtils.dll</HintPath>
-    </Reference>
-    <Reference Include="LayerCommons">
-      <HintPath>..\SylvacBleLib\LayerCommons.dll</HintPath>
     </Reference>
     <Reference Include="LibUtils">
       <HintPath>..\SylvacBleLib\LibUtils.dll</HintPath>
@@ -33,14 +22,29 @@
     <Reference Include="LogUtils">
       <HintPath>..\SylvacBleLib\LogUtils.dll</HintPath>
     </Reference>
-    <Reference Include="LayerScan">
-      <HintPath>..\SylvacBleLib\LayerScan.dll</HintPath>
+    <Reference Include="Sylvac.Bluetooth.BgApi">
+      <HintPath>..\SylvacBleLib\Sylvac.Bluetooth.BgApi.dll</HintPath>
     </Reference>
-    <Reference Include="SerialCom">
-      <HintPath>..\SylvacBleLib\SerialCom.dll</HintPath>
+    <Reference Include="Sylvac.Bluetooth.LayerCentral">
+      <HintPath>..\SylvacBleLib\Sylvac.Bluetooth.LayerCentral.dll</HintPath>
     </Reference>
-    <Reference Include="LayerStack">
-      <HintPath>..\SylvacBleLib\LayerStack.dll</HintPath>
+    <Reference Include="Sylvac.Bluetooth.LayerCommons">
+      <HintPath>..\SylvacBleLib\Sylvac.Bluetooth.LayerCommons.dll</HintPath>
+    </Reference>
+    <Reference Include="Sylvac.Bluetooth.LayerConnection">
+      <HintPath>..\SylvacBleLib\Sylvac.Bluetooth.LayerConnection.dll</HintPath>
+    </Reference>
+    <Reference Include="Sylvac.Bluetooth.LayerScan">
+      <HintPath>..\SylvacBleLib\Sylvac.Bluetooth.LayerScan.dll</HintPath>
+    </Reference>
+    <Reference Include="Sylvac.Bluetooth.LayerStack">
+      <HintPath>..\SylvacBleLib\Sylvac.Bluetooth.LayerStack.dll</HintPath>
+    </Reference>
+    <Reference Include="Sylvac.Constants">
+      <HintPath>..\SylvacBleLib\Sylvac.Constants.dll</HintPath>
+    </Reference>
+    <Reference Include="Sylvac.PortDetection">
+      <HintPath>..\SylvacBleLib\Sylvac.PortDetection.dll</HintPath>
     </Reference>
     <Reference Include="SylvacBleLib">
       <HintPath>..\SylvacBleLib\SylvacBleLib.dll</HintPath>

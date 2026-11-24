@@ -2,15 +2,17 @@ Sylvac Bluetooth library basic use
 =========================================
 
 ## 1. Introduction
-This document shows how to use the `SylvacBleLib` Bluetooth library. This library aims at connecting Sylvac Bluetooth instruments using a Sylvac USB dongle: the *Bluetooth 5 SMART dongle* (BL654 module, BT5, ref. 981-7102 and 981-7103, up to 16 instruments) or the *Bluetooth 4 dongle* (BLED112 module, BT4, ref. 981-7100, up to 8 instruments). The same code works with both dongles.
+This document shows how to use the `SylvacBleLib` Bluetooth library. This library aims at connecting Sylvac Bluetooth instruments using the *Silabs Bluegiga BLED112* Bluetooth 4 dongle or the *Laird Connectivity (Zephyr)* Bluetooth 5 dongle.
 
 `SylvacBleLib` is still in beta version and the API may change without further notice.
 
-**[Download the compiled BluetoothExample app](BluetoothExample.zip)**
+**[Download the compiled BluetoothExample app](BluetoothExample.zip)** (requires the [.NET 10 Desktop Runtime](https://dotnet.microsoft.com/download/dotnet/10.0)).
 
 ## 2. Install
 
 Copy the `SylvacBleLib` folder of this repository at the root of your solution.
+
+Your project must target .NET 10 (`net10.0` or `net10.0-windows`).
 
 You need to reference all DLLs in the `SylvacBleLib` folder, except the `dllres` folder.
 
@@ -18,7 +20,7 @@ Add the following post-build event to your project :
 
 `xcopy "$(SolutionDir)SylvacBleLib\dllres\win-x64\serialwin.dll" "$(TargetDir)dllres\win-x64\" /Y /I`
 
-Install the following NuGet package : `System.IO.Ports` by Microsoft.
+Install the following NuGet packages by Microsoft: `System.IO.Ports` and `System.Management`.
 
 ## 3. Initialization of the DLL
 You can get the Bluetooth manager via the `SylvacBleLib.BleManager.Instance` singleton.

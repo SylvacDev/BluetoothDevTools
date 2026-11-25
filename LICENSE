@@ -17,6 +17,7 @@ Applies to:
   - libraries/rust/  (all files)
   - libraries/c/include/sylvac_ble.h
   - libraries/linux/70-sylvac-ble.rules
+  - built-in/  (all files)
   - code snippets in the README files of this repository
 
 Permission is hereby granted, free of charge, to any person obtaining a copy

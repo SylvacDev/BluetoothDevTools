@@ -1,0 +1,4 @@
+# Gradle wrapper: the shell script keeps LF, the batch file CRLF, the jar is binary.
+gradlew text eol=lf
+*.bat text eol=crlf
+*.jar binary

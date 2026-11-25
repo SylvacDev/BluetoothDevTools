@@ -11,11 +11,11 @@ With these tools your application can:
 
 ## Choose your path
 
-<p align="center"><img src="docs/developer-paths.svg" width="900" alt="Recommended path: Windows or Linux, Sylvac libraries (C# / .NET 10 on Windows, Rust library called from Python on Windows and Linux), Bluetooth 5 SMART dongle BL654 (BT5, 981-7102 / 981-7103, up to 16 instruments) or Bluetooth 4 dongle BLED112 (BT4, 981-7100, up to 8 instruments). Low level, on Windows or Linux: BGAPI SDK for the BLED112 (BT4). Without dongle: native Bluetooth API or cross-platform framework with the Sylvac GATT profiles. All paths use the Sylvac custom Bluetooth GATT profile: Sylvac Metrology Service (SMS) and Simple Data Service (SDS)."></p>
+<p align="center"><img src="docs/developer-paths.svg" width="900" alt="Recommended path: Windows or Linux, Sylvac libraries (C# / .NET 10 on Windows; Python, C and Rust on Windows and Linux), Bluetooth 5 SMART dongle BL654 (BT5, 981-7102 / 981-7103, up to 16 instruments) or Bluetooth 4 dongle BLED112 (BT4, 981-7100, up to 8 instruments). Low level, on Windows or Linux: BGAPI SDK for the BLED112 (BT4). Without dongle: native Bluetooth API or cross-platform framework with the Sylvac GATT profiles. All paths use the Sylvac custom Bluetooth GATT profile: Sylvac Metrology Service (SMS) and Simple Data Service (SDS)."></p>
 
 | You want to... | Use | Dongles | Platforms |
 |---|---|---|---|
-| **Connect instruments through a Sylvac dongle (recommended)** | [Sylvac libraries](libraries) | BL654 (BT5) and BLED112 (BT4) | C# / .NET: Windows. Rust and Python library (coming soon): Windows, Linux |
+| **Connect instruments through a Sylvac dongle (recommended)** | [Sylvac libraries](libraries) | BL654 (BT5) and BLED112 (BT4) | C# / .NET: Windows. Python, C and Rust (preview): Windows x64, Linux |
 | Use the built-in Bluetooth of a phone, tablet, Mac or PC, without dongle | [Sylvac GATT profiles](gatt-profiles) and the [list of third-party Bluetooth APIs and libraries (PDF)](docs/MAN-DeveloperResources_OS.pdf) | None | Android, iOS, macOS, Linux, Windows |
 | Drive compatible dongles with the BGAPI protocol | [Sylvac GATT profiles](gatt-profiles) and the [BGAPI SDK](dongles/BLED112) | BLED112 (BT4) | Windows, Linux, and more |
 | Maintain an existing integration based on the C++ communication DLL | [C++ communication DLL](legacy/cpp-dll) (legacy, 2019) | BLED112 (BT4), or built-in Bluetooth on Windows 10 | Windows |
@@ -32,7 +32,7 @@ Sylvac sells two USB dongles, both supported by the libraries: the **Bluetooth 5
 
 | Folder | Content |
 |---|---|
-| [`libraries/`](libraries) | Sylvac libraries: C# / .NET, and Rust called from Python (coming soon) |
+| [`libraries/`](libraries) | Sylvac libraries: C# / .NET, and Python, C and Rust (preview) |
 | [`dongles/`](dongles) | Sylvac USB dongles and the Bluegiga BGAPI SDK |
 | [`gatt-profiles/`](gatt-profiles) | Bluetooth profile, SDS and SMS specifications |
 | [`legacy/cpp-dll/`](legacy/cpp-dll) | C++ communication DLL v1.45, headers and API reference |

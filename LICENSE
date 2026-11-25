@@ -13,6 +13,10 @@ Applies to:
   - libraries/csharp/BluetoothExample.sln
   - legacy/cpp-dll/TestDLLCSharp.zip
   - legacy/cpp-dll/Header/  (all files)
+  - libraries/python/bluetooth_example.py
+  - libraries/rust/  (all files)
+  - libraries/c/include/sylvac_ble.h
+  - libraries/linux/70-sylvac-ble.rules
   - code snippets in the README files of this repository
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -41,6 +45,9 @@ Applies to all other files published by Sylvac SA in this repository, in
 particular:
   - the SylvacBleLib libraries and their XML documentation
     (libraries/csharp/SylvacBleLib/, except System.IO.Ports.dll)
+  - the compiled Sylvac BLE library for C, Python and Rust
+    (libraries/c/, except the header, and the Python wheels in
+    libraries/python/wheels/)
   - the Sylvac communication DLL and its HTML API reference
     (legacy/cpp-dll/, except ftd2xx.dll)
   - the compiled BluetoothExample application (BluetoothExample.zip)
@@ -84,6 +91,10 @@ owners. Sylvac SA grants no rights on them.
     (BLED112 data sheet, BGAPI reference manual, release notes, UG208)
   - ftd2xx.dll  (Future Technology Devices International Ltd.)
   - System.IO.Ports.dll  (Microsoft Corporation, MIT License)
+  - the open-source Rust crates built into the compiled Sylvac BLE library
+    (libraries/c/ and libraries/python/wheels/), under the MIT, Apache-2.0
+    and MPL-2.0 licenses; list and license texts in
+    libraries/c/THIRD-PARTY-NOTICES.txt
 
 Original Bluegiga SDK packages and their license terms are available from
 Silicon Labs: https://www.silabs.com/wireless/bluetooth

@@ -1,0 +1,13 @@
+[package]
+name = "sylvac-ble-sys"
+description = "Raw bindings to the Sylvac BLE SDK C library (sylvac_ble.dll / libsylvac_ble.so). Use the safe crate sylvac-ble instead."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish.workspace = true
+links = "sylvac_ble"
+build = "build.rs"
+
+[lints]
+workspace = true

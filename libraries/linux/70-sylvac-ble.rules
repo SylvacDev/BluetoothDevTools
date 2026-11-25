@@ -1,0 +1,20 @@
+# Sylvac USB dongles on Linux: Bluetooth 4 dongle (BLED112, USB 2458:0001) and Bluetooth 5 SMART
+# dongle (BL654, USB c1b3:0005). Both appear as USB serial ports, /dev/ttyACM*.
+#
+# Install:
+#   sudo cp 70-sylvac-ble.rules /etc/udev/rules.d/
+#   sudo udevadm control --reload && sudo udevadm trigger --subsystem-match=tty
+# then unplug and replug the dongles.
+#
+# ModemManager probes new ttyACM ports for a few seconds and can hold the port while the Sylvac
+# library tries to open it. ID_MM_DEVICE_IGNORE makes it skip the dongles. The number 70 runs
+# these rules before ModemManager's own (77-mm-*.rules).
+SUBSYSTEMS=="usb", ATTRS{idVendor}=="2458", ATTRS{idProduct}=="0001", ENV{ID_MM_DEVICE_IGNORE}="1"
+SUBSYSTEMS=="usb", ATTRS{idVendor}=="c1b3", ATTRS{idProduct}=="0005", ENV{ID_MM_DEVICE_IGNORE}="1"
+
+# Access: /dev/ttyACM* belong to the group dialout (Debian, Ubuntu, Fedora; uucp on Arch).
+# Add the user once and log in again:  sudo usermod -aG dialout $USER
+# On a desktop, the lines below instead give the logged-in user access without the group
+# (systemd-logind; must run before 73-seat-late.rules).
+#SUBSYSTEM=="tty", ATTRS{idVendor}=="2458", ATTRS{idProduct}=="0001", TAG+="uaccess"
+#SUBSYSTEM=="tty", ATTRS{idVendor}=="c1b3", ATTRS{idProduct}=="0005", TAG+="uaccess"

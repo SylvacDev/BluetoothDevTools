@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="920" height="716" viewBox="0 0 920 716" font-family="'Segoe UI', Arial, Helvetica, sans-serif">
   <title>Sylvac Bluetooth developer paths</title>
-  <desc>Top to bottom. Platform, then software, then hardware, then Bluetooth, then instruments. Path 1, recommended: Windows or Linux, Sylvac libraries (C# / .NET 10 on Windows; Rust library called from Python on Windows and Linux; folder libraries/), to the Bluetooth 5 SMART dongle (BL654, BT5, ref. 981-7102 / 981-7103, up to 16 instruments) or the Bluetooth 4 dongle (BLED112, BT4, ref. 981-7100, up to 8 instruments). Path 2: Windows or Linux, Bluegiga BGAPI SDK, low level, BLED112 (BT4) only, folder dongles/BLED112/. Path 3: Android, iOS, macOS, Linux or Windows, native Bluetooth API or cross-platform framework, folders gatt-profiles/ and docs/, to the built-in Bluetooth of the device. All paths reach the instruments through the Sylvac custom Bluetooth GATT profile: Sylvac Metrology Service (SMS) and Simple Data Service (SDS).</desc>
+  <desc>Top to bottom. Platform, then software, then hardware, then Bluetooth, then instruments. Path 1, recommended: Windows or Linux, Sylvac libraries (C# / .NET 10 on Windows; Python, C and Rust on Windows and Linux; folder libraries/), to the Bluetooth 5 SMART dongle (BL654, BT5, ref. 981-7102 / 981-7103, up to 16 instruments) or the Bluetooth 4 dongle (BLED112, BT4, ref. 981-7100, up to 8 instruments). Path 2: Windows or Linux, Bluegiga BGAPI SDK, low level, BLED112 (BT4) only, folder dongles/BLED112/. Path 3: Android, iOS, macOS, Linux or Windows, native Bluetooth API or cross-platform framework, folders gatt-profiles/ and docs/, to the built-in Bluetooth of the device. All paths reach the instruments through the Sylvac custom Bluetooth GATT profile: Sylvac Metrology Service (SMS) and Simple Data Service (SDS).</desc>
   <defs>
     <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
       <path d="M0,0 L10,5 L0,10 z" fill="#222"/>
@@ -60,7 +60,7 @@
   <g font-size="13" fill="#222">
     <text x="170" y="176" font-weight="700">C# / .NET 10</text>
     <text x="370" y="176">Windows</text>
-    <text x="170" y="199" font-weight="700">Rust, called from Python</text>
+    <text x="170" y="199" font-weight="700">Python, C, Rust</text>
     <text x="370" y="199">Windows, Linux</text>
   </g>
   <text x="170" y="224" font-size="12" fill="#6b5a1e" font-family="Consolas, 'Courier New', monospace">libraries/</text>

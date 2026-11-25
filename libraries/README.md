@@ -10,7 +10,13 @@ They work with both Sylvac dongles, and the same code runs with either of them:
 | Folder | Language | Platforms | Content |
 |---|---|---|---|
 | [csharp](csharp) | C# / .NET | Windows | SylvacBleLib and the BluetoothExample WPF application |
-| rust | Rust, called from Python | Windows, Linux | Compiled Rust library and a Python example that calls it (coming soon) |
+| [python](python) | Python 3.10+ | Windows x64, Linux (x86_64, ARM) | The `sylvac_ble` package (wheels) and `bluetooth_example.py`, the Python twin of BluetoothExample (preview) |
+| [c](c) | C, C++, any language that calls a C library | Windows x64, Linux (x86_64, ARM) | The compiled library `sylvac_ble` and its header (preview) |
+| [rust](rust) | Rust | Windows x64, Linux (x86_64, ARM) | Open-source crates over the compiled library (preview) |
+
+The Python, C and Rust libraries share one compiled library, so they behave the same, and their
+names follow SylvacBleLib (`BleManager`, `BleCentral`, `BlePeripheral`, `NumericalValueChanged`...).
+On Linux, install [the udev rule](linux) for the dongles.
 
 All libraries offer the same features:
 

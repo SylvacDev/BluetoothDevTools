@@ -1,6 +1,6 @@
 # Sylvac BLE library for C and C++
 
-> **Preview.** Version 0.1.0 (C ABI 21). The API may still change before the first release.
+> **Preview.** Version 0.1.0 (C ABI 24). The API may still change before the first release.
 
 A compiled library to connect Sylvac Bluetooth® instruments through a Sylvac USB dongle from C,
 C++ or any language that can call a C library (C#, Delphi, LabVIEW, Python `ctypes`...). It
@@ -53,17 +53,21 @@ user to the `dialout` group.
 int main(void) {
     sylvac_ble_config config;
     sylvac_ble_config_init(&config);
-    config.sylvac_only = 1;                 /* list Sylvac instruments only */
 
     sylvac_ble_manager *ble;
     if (sylvac_ble_manager_start(&config, &ble) != SYLVAC_BLE_OK) return 1;
 
-    sylvac_ble_mac mac;
-    sylvac_ble_mac_parse("D216182F6CCC", &mac);   /* the address on the instrument label */
-    sylvac_ble_start_connect(ble, &mac);         /* kept connected until disconnected */
+    /* List Sylvac instruments only */
+    sylvac_ble_scan_set_sylvac_only(ble, 1);
 
-    sylvac_ble_measuring_params params;
-    int have_params = 0;
+    sylvac_ble_scan_start(ble);
+
+    /* Bluetooth address of the instrument */
+    sylvac_ble_mac mac;
+
+    sylvac_ble_mac_parse("D216182F6CCC", &mac);
+    sylvac_ble_start_connect(ble, &mac);
+
     for (;;) {
         sylvac_ble_event *ev;
         sylvac_ble_status st = sylvac_ble_next_event(ble, 1000, &ev);
@@ -74,25 +78,20 @@ int main(void) {
             if (ev->data.connection_step_changed.value == SYLVAC_BLE_CONNECTION_STEP_SUBSCRIBED)
                 sylvac_ble_send_command(ble, &ev->data.connection_step_changed.peripheral, "ID?");
             break;
-        case SYLVAC_BLE_EVENT_MEASUREMENT_PARAMS_CHANGED:   /* always before the values */
-            params = ev->data.measurement_params_changed.value;
-            have_params = 1;
+        case SYLVAC_BLE_EVENT_NUMERICAL_VALUE_CHANGED: {
+            char text[SYLVAC_BLE_VALUE_STRING_SIZE];
+            sylvac_ble_format_value(&ev->data.numerical_value_changed.measurement_params,
+                                    ev->data.numerical_value_changed.value, text, sizeof text);
+            printf("value %s\n", text);
             break;
-        case SYLVAC_BLE_EVENT_NUMERICAL_VALUE_CHANGED:
-            if (have_params) {
-                char text[SYLVAC_BLE_VALUE_STRING_SIZE];
-                sylvac_ble_format_value(&params, ev->data.numerical_value_changed.value,
-                                        text, sizeof text);
-                printf("value %s\n", text);
-            }
-            break;
+        }
         case SYLVAC_BLE_EVENT_INSTRUMENT_RESPONSE_RECEIVED:
             printf("answer %s\n", ev->data.instrument_response_received.value);
             break;
         }
         sylvac_ble_event_free(ev);
     }
-    sylvac_ble_manager_free(ble);           /* stops the library if needed */
+    sylvac_ble_manager_free(ble);
     return 0;
 }
 ```

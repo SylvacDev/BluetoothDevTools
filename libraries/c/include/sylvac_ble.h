@@ -27,7 +27,7 @@
  * higher minor only adds functions, constants, event kinds or fields at the end of a struct the
  * library allocates. Before the first stable release the major is 0 and every minor may break.
  */
-#define SYLVAC_BLE_ABI_VERSION 21
+#define SYLVAC_BLE_ABI_VERSION 24
 
 /**
  * `sylvac_ble_next_event` timeout that waits until an event comes or the manager is stopped.
@@ -403,10 +403,6 @@ typedef struct sylvac_ble_config {
    */
   uint32_t struct_size;
   /**
-   * 1: list only Sylvac devices (the 20 Sylvac name prefixes). Default 0.
-   */
-  uint32_t sylvac_only;
-  /**
    * 1: find USB dongles by themselves (hot-plug notifications on Windows, a sysfs rescan
    * every second on Linux). Default 1.
    */
@@ -435,6 +431,10 @@ typedef struct sylvac_ble_config {
    */
   uint32_t log_level;
   /**
+   * Padding, 0.
+   */
+  uint32_t reserved;
+  /**
    * Ports that always hold a dongle (`"COM5"`, `"/dev/ttyS2"` for a board UART), UTF-8,
    * opened at start and reopened every 5 s after a failure. Copied by
    * `sylvac_ble_manager_start`. May be NULL when `port_count` is 0.
@@ -443,11 +443,16 @@ typedef struct sylvac_ble_config {
 } sylvac_ble_config;
 
 /**
- * Bluetooth address, most significant byte first: `D2 16 18 2F 6C CC` is printed
- * `D216182F6CCC`, as on the instrument label.
+ * Bluetooth address, **least significant byte first** as the BGAPI `bd_addr`: `D216182F6CCC`
+ * in the BT > MAC menu of the instrument is `le_bytes` `CC 6C 2F 18 16 D2`.
+ * `sylvac_ble_mac_format` and `sylvac_ble_mac_parse` give and read the order as displayed
+ * in the BT > MAC menu.
  */
 typedef struct sylvac_ble_mac {
-  uint8_t bytes[6];
+  /**
+   * `le_bytes[0]` is the last byte displayed in the BT > MAC menu, `le_bytes[5]` the first.
+   */
+  uint8_t le_bytes[6];
 } sylvac_ble_mac;
 
 /**
@@ -517,7 +522,7 @@ typedef struct sylvac_ble_central_failed_event {
 } sylvac_ble_central_failed_event;
 
 /**
- * A device heard by the scanning dongle (`SYLVAC_BLE_EVENT_ADVERTISER_CHANGED`, `sylvac_ble_advertisers`).
+ * A device heard by the scanning dongle (`SYLVAC_BLE_EVENT_ADVERTISER_CHANGED`, `sylvac_ble_scan_advertisers`).
  */
 typedef struct sylvac_ble_advertiser {
   /**
@@ -526,7 +531,7 @@ typedef struct sylvac_ble_advertiser {
   double float_value;
   /**
    * When its last packet was heard, milliseconds since 1970-01-01 UTC.
-   * `SYLVAC_BLE_EVENT_ADVERTISER_CHANGED` is not sent for this alone: `sylvac_ble_advertisers`
+   * `SYLVAC_BLE_EVENT_ADVERTISER_CHANGED` is not sent for this alone: `sylvac_ble_scan_advertisers`
    * has the latest.
    */
   uint64_t date_received_ms;
@@ -609,17 +614,45 @@ typedef struct sylvac_ble_connection_step_changed_event {
 } sylvac_ble_connection_step_changed_event;
 
 /**
- * `SYLVAC_BLE_EVENT_NUMERICAL_VALUE_CHANGED`: a live value, in the unit of the last
- * `SYLVAC_BLE_EVENT_MEASUREMENT_PARAMS_CHANGED` and rounded half to even to its
- * `numerical_resolution`; `sylvac_ble_format_value` shows it with exactly those decimals. None
- * arrive before the instrument has sent its SDS Parameters and its measurement format was
- * read. Not filtered: an SY289 with firmware r4.10r sends 100 x the real value first after
- * each connection.
+ * How an instrument measures, from its SDS Parameters.
+ */
+typedef struct sylvac_ble_measuring_params {
+  /**
+   * `SYLVAC_BLE_SDS_UNIT_*`: the unit of the values.
+   */
+  uint32_t unit;
+  /**
+   * `SYLVAC_BLE_SDS_MODE_*`.
+   */
+  uint32_t measuring_mode;
+  /**
+   * Decimals of the values: the resolution class, + 2 in inch and radian, at most 15.
+   */
+  uint32_t numerical_resolution;
+  /**
+   * `SYLVAC_BLE_SDS_RESOLUTION_*`.
+   */
+  uint32_t resolution_class;
+} sylvac_ble_measuring_params;
+
+/**
+ * `SYLVAC_BLE_EVENT_NUMERICAL_VALUE_CHANGED`: a live value and the `measurement_params` it is
+ * in: its unit, and rounded half to even to their `numerical_resolution`;
+ * `sylvac_ble_format_value(&measurement_params, value, ...)` shows it with exactly those
+ * decimals. The same parameters as the last `SYLVAC_BLE_EVENT_MEASUREMENT_PARAMS_CHANGED`, sent
+ * before this event when they changed; carried here so that each value can be shown without
+ * keeping them. None arrive before the instrument has sent its SDS Parameters and its
+ * measurement format was read. Not filtered: an SY289 with firmware r4.10r sends 100 x the real
+ * value first after each connection.
  */
 typedef struct sylvac_ble_numerical_value_changed_event {
   double value;
   struct sylvac_ble_mac peripheral;
   uint8_t reserved[2];
+  /**
+   * The parameters `value` is in.
+   */
+  struct sylvac_ble_measuring_params measurement_params;
 } sylvac_ble_numerical_value_changed_event;
 
 /**
@@ -752,28 +785,6 @@ typedef struct sylvac_ble_pairing_status_changed_event {
 } sylvac_ble_pairing_status_changed_event;
 
 /**
- * How an instrument measures, from its SDS Parameters.
- */
-typedef struct sylvac_ble_measuring_params {
-  /**
-   * `SYLVAC_BLE_SDS_UNIT_*`: the unit of the values.
-   */
-  uint32_t unit;
-  /**
-   * `SYLVAC_BLE_SDS_MODE_*`.
-   */
-  uint32_t measuring_mode;
-  /**
-   * Decimals of the values: the resolution class, + 2 in inch and radian, at most 15.
-   */
-  uint32_t numerical_resolution;
-  /**
-   * `SYLVAC_BLE_SDS_RESOLUTION_*`.
-   */
-  uint32_t resolution_class;
-} sylvac_ble_measuring_params;
-
-/**
  * `SYLVAC_BLE_EVENT_MEASUREMENT_PARAMS_CHANGED`.
  */
 typedef struct sylvac_ble_measurement_params_changed_event {
@@ -878,7 +889,7 @@ typedef struct sylvac_ble_central_list {
 } sylvac_ble_central_list;
 
 /**
- * `sylvac_ble_advertisers`: devices heard in the last 60 s while scanning. Free with
+ * `sylvac_ble_scan_advertisers`: devices heard in the last 60 s while scanning. Free with
  * `sylvac_ble_advertiser_list_free`.
  */
 typedef struct sylvac_ble_advertiser_list {
@@ -1131,36 +1142,52 @@ sylvac_ble_status SYLVAC_BLE_CALL sylvac_ble_set_callback(struct sylvac_ble_mana
                                           void *user_data);
 
 /**
- * Lists the devices heard (`SYLVAC_BLE_EVENT_ADVERTISER_CHANGED`). Dongles still scan by themselves while
+ * Sets whether the scan lists only Sylvac devices (the 20 Sylvac name prefixes): 1 on, 0 off
+ * (0 at start). Before or during a scan; the list is filtered again at once: a
+ * `SYLVAC_BLE_EVENT_ADVERTISER_REMOVED` for each device listed that no longer passes, a
+ * `SYLVAC_BLE_EVENT_ADVERTISER_CHANGED` for each device heard in the last minute that now does.
+ * Connected peripherals are not affected.
+ */
+sylvac_ble_status SYLVAC_BLE_CALL sylvac_ble_scan_set_sylvac_only(struct sylvac_ble_manager *manager, uint32_t on);
+
+/**
+ * `*on` receives whether the scan lists only Sylvac devices (1 or 0): 0 at start, then as last
+ * set with `sylvac_ble_scan_set_sylvac_only`.
+ */
+sylvac_ble_status SYLVAC_BLE_CALL sylvac_ble_scan_get_sylvac_only(struct sylvac_ble_manager *manager, uint32_t *on);
+
+/**
+ * Lists the devices heard (`SYLVAC_BLE_EVENT_ADVERTISER_CHANGED`), filtered as set with
+ * `sylvac_ble_scan_set_sylvac_only`. Dongles still scan by themselves while
  * an instrument to connect has no link.
  */
-sylvac_ble_status SYLVAC_BLE_CALL sylvac_ble_start_scan(struct sylvac_ble_manager *manager);
+sylvac_ble_status SYLVAC_BLE_CALL sylvac_ble_scan_start(struct sylvac_ble_manager *manager);
 
 /**
  * Stops listing advertisers.
  */
-sylvac_ble_status SYLVAC_BLE_CALL sylvac_ble_stop_scan(struct sylvac_ble_manager *manager);
+sylvac_ble_status SYLVAC_BLE_CALL sylvac_ble_scan_stop(struct sylvac_ble_manager *manager);
 
 /**
  * Empties the list of devices heard, with a `SYLVAC_BLE_EVENT_ADVERTISER_REMOVED` for each; a
  * device still around is listed again at its next advertisement.
  */
-sylvac_ble_status SYLVAC_BLE_CALL sylvac_ble_clear_scan(struct sylvac_ble_manager *manager);
+sylvac_ble_status SYLVAC_BLE_CALL sylvac_ble_scan_clear(struct sylvac_ble_manager *manager);
 
 /**
  * The dongle `central` scans and its advertisements make the list, instead of the dongle the
  * library chooses. It keeps the scan while it is ready (a lost dongle hands it over and takes it
- * back when it returns). `sylvac_ble_start_scan` or `sylvac_ble_stop_scan` give the choice back to
+ * back when it returns). `sylvac_ble_scan_start` or `sylvac_ble_scan_stop` give the choice back to
  * the library. A dongle that is not ready: a `SYLVAC_BLE_EVENT_LIB_LOG` warning, nothing changes.
  */
-sylvac_ble_status SYLVAC_BLE_CALL sylvac_ble_start_scan_on(struct sylvac_ble_manager *manager,
+sylvac_ble_status SYLVAC_BLE_CALL sylvac_ble_scan_start_on(struct sylvac_ble_manager *manager,
                                            const struct sylvac_ble_mac *central);
 
 /**
  * When `central` is the scanning dongle, the list stops and the choice goes back to the library;
  * otherwise nothing.
  */
-sylvac_ble_status SYLVAC_BLE_CALL sylvac_ble_stop_scan_on(struct sylvac_ble_manager *manager,
+sylvac_ble_status SYLVAC_BLE_CALL sylvac_ble_scan_stop_on(struct sylvac_ble_manager *manager,
                                           const struct sylvac_ble_mac *central);
 
 /**
@@ -1187,19 +1214,6 @@ sylvac_ble_status SYLVAC_BLE_CALL sylvac_ble_reset_connections(struct sylvac_ble
 sylvac_ble_status SYLVAC_BLE_CALL sylvac_ble_delete_bond(struct sylvac_ble_manager *manager,
                                          const struct sylvac_ble_mac *central,
                                          const struct sylvac_ble_mac *peripheral);
-
-/**
- * Sets `sylvac_only` at run time (1 on, 0 off; starts as `sylvac_ble_config.sylvac_only`). The
- * list is filtered again at once: a `SYLVAC_BLE_EVENT_ADVERTISER_REMOVED` for each device listed
- * that no longer passes, a `SYLVAC_BLE_EVENT_ADVERTISER_CHANGED` for each device heard in the last
- * minute that now does.
- */
-sylvac_ble_status SYLVAC_BLE_CALL sylvac_ble_set_sylvac_only(struct sylvac_ble_manager *manager, uint32_t on);
-
-/**
- * `*on` receives the current `sylvac_only` (1 or 0): as configured, then as last set.
- */
-sylvac_ble_status SYLVAC_BLE_CALL sylvac_ble_get_sylvac_only(struct sylvac_ble_manager *manager, uint32_t *on);
 
 /**
  * Connects the peripheral (instrument) whose address is `peripheral` on the dongle with the
@@ -1309,11 +1323,11 @@ void SYLVAC_BLE_CALL sylvac_ble_central_list_free(struct sylvac_ble_central_list
 /**
  * The devices heard in the last 60 s while scanning; free with `sylvac_ble_advertiser_list_free`.
  */
-sylvac_ble_status SYLVAC_BLE_CALL sylvac_ble_advertisers(struct sylvac_ble_manager *manager,
-                                         struct sylvac_ble_advertiser_list **list);
+sylvac_ble_status SYLVAC_BLE_CALL sylvac_ble_scan_advertisers(struct sylvac_ble_manager *manager,
+                                              struct sylvac_ble_advertiser_list **list);
 
 /**
- * Frees a list from `sylvac_ble_advertisers`. NULL is allowed.
+ * Frees a list from `sylvac_ble_scan_advertisers`. NULL is allowed.
  */
 void SYLVAC_BLE_CALL sylvac_ble_advertiser_list_free(struct sylvac_ble_advertiser_list *list);
 

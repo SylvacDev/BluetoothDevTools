@@ -14,21 +14,19 @@
 //! use std::time::Duration;
 //! use sylvac_ble::{BleManager, BleConfig, ConnectionStep, Event};
 //!
-//! let manager = BleManager::start(BleConfig { sylvac_only: true, ..BleConfig::default() })?;
-//! manager.start_scan()?;
+//! let manager = BleManager::start(BleConfig::default())?;
+//! let scan = manager.scan();
+//! scan.set_sylvac_only(true)?;
+//! scan.start()?;
 //! let wanted = "D216182F6CCC".parse()?;
 //! manager.start_connect(wanted)?;
-//! let mut params = None; // the parameters of the values, always reported before them
 //! while let Some(event) = manager.next_event(Duration::from_secs(30)) {
 //!     match event {
 //!         Event::ConnectionStepChanged { peripheral, value: ConnectionStep::Subscribed } => {
 //!             manager.peripheral(peripheral).send_command("?")?;
 //!         }
-//!         Event::MeasurementParamsChanged { value, .. } => params = Some(value),
-//!         Event::NumericalValueChanged { peripheral, value } => {
-//!             if let Some(p) = params {
-//!                 println!("{peripheral}: {} {:?}", p.format(value), p.unit);
-//!             }
+//!         Event::NumericalValueChanged { peripheral, value, measurement_params: p } => {
+//!             println!("{peripheral}: {} {:?}", p.format(value), p.unit);
 //!         }
 //!         Event::InstrumentResponseReceived { peripheral, value, .. } => println!("{peripheral} answered {value}"),
 //!         _ => {}
@@ -58,8 +56,8 @@ use sylvac_ble_sys as sys;
 
 pub use crate::types::{
     BleAdvertiser, BleCentral, BondMode, CentralKind, ConnectionStep, DeviceUsageType,
-    DisconnectReason, Event, LogLevel, Mac, MacParseError, MeasuringParams, PairingStatus,
-    RejectReason, SdsMode, SdsResolution, SdsUnit,
+    DisconnectReason, Event, LogLevel, Mac, MacParseError, MacRangeError, MeasuringParams,
+    PairingStatus, RejectReason, SdsMode, SdsResolution, SdsUnit,
 };
 
 /// ABI version of the C library this crate was written for (major << 16 | minor).
@@ -82,8 +80,6 @@ pub fn library_abi_version() -> u32 {
 /// How the manager runs.
 #[derive(Debug, Clone)]
 pub struct BleConfig {
-    /// List only Sylvac devices (20 name prefixes).
-    pub sylvac_only: bool,
     /// Ports that always hold a dongle (`COM5`, `/dev/ttyS2` for a board UART), opened at start
     /// and reopened every 5 s after a failure.
     pub ports: Vec<String>,
@@ -107,13 +103,13 @@ pub struct BleConfig {
 fn raw_default_config() -> sys::sylvac_ble_config {
     let mut raw = sys::sylvac_ble_config {
         struct_size: 0,
-        sylvac_only: 0,
         hot_plug: 1,
         auto_reassign: 0,
         response_timeout_ms: 3000,
         queue_capacity: 10_000,
         port_count: 0,
         log_level: sys::SYLVAC_BLE_LOG_LEVEL_WARNING,
+        reserved: 0,
         ports: ptr::null(),
     };
     // SAFETY: a valid struct to fill. It sets `struct_size` and the library's defaults.
@@ -126,7 +122,6 @@ impl Default for BleConfig {
     fn default() -> Self {
         let raw = raw_default_config();
         Self {
-            sylvac_only: raw.sylvac_only != 0,
             ports: Vec::new(),
             hot_plug: raw.hot_plug != 0,
             auto_reassign: raw.auto_reassign != 0,
@@ -440,7 +435,6 @@ impl BleManager {
         let pointers: Vec<*const c_char> = ports.iter().map(|port| port.as_ptr()).collect();
         let too_large = |what: &str| Error::InvalidArgument(format!("{what} is too large"));
         let mut raw = raw_default_config();
-        raw.sylvac_only = u32::from(config.sylvac_only);
         raw.hot_plug = u32::from(config.hot_plug);
         raw.auto_reassign = u32::from(config.auto_reassign);
         raw.response_timeout_ms = u32::try_from(config.response_timeout.as_millis())
@@ -539,44 +533,6 @@ impl BleManager {
         check(unsafe { sys::sylvac_ble_set_callback(self.inner.handle, None, ptr::null_mut()) })
     }
 
-    /// Lists the devices heard ([`Event::AdvertiserChanged`]). Dongles still scan by themselves while
-    /// an instrument to connect has no link, whether or not the list is on.
-    pub fn start_scan(&self) -> Result<(), Error> {
-        // SAFETY: a live handle.
-        check(unsafe { sys::sylvac_ble_start_scan(self.inner.handle) })
-    }
-
-    pub fn stop_scan(&self) -> Result<(), Error> {
-        // SAFETY: a live handle.
-        check(unsafe { sys::sylvac_ble_stop_scan(self.inner.handle) })
-    }
-
-    /// Empties the list of devices heard, with an [`Event::AdvertiserRemoved`]
-    /// for each; a device still around is listed again at its next advertisement.
-    pub fn clear_scan(&self) -> Result<(), Error> {
-        // SAFETY: a live handle.
-        check(unsafe { sys::sylvac_ble_clear_scan(self.inner.handle) })
-    }
-
-    /// The dongle `central` scans and its advertisements make the list, instead of the dongle
-    /// the library chooses. It keeps the scan while it is ready (a lost dongle hands it over and
-    /// takes it back when it returns).
-    /// [`BleManager::start_scan`] or [`BleManager::stop_scan`] give the choice back to the
-    /// library. A dongle that is not ready: an [`Event::LibLog`] warning, nothing changes.
-    pub fn start_scan_on(&self, central: Mac) -> Result<(), Error> {
-        let raw = sys::sylvac_ble_mac { bytes: central.0 };
-        // SAFETY: a live handle and a valid address.
-        check(unsafe { sys::sylvac_ble_start_scan_on(self.inner.handle, &raw) })
-    }
-
-    /// When `central` is the scanning dongle, the list stops and the choice goes back to the
-    /// library; otherwise nothing.
-    pub fn stop_scan_on(&self, central: Mac) -> Result<(), Error> {
-        let raw = sys::sylvac_ble_mac { bytes: central.0 };
-        // SAFETY: a live handle and a valid address.
-        check(unsafe { sys::sylvac_ble_stop_scan_on(self.inner.handle, &raw) })
-    }
-
     /// [`BlePeripheral::start_disconnect`] for every instrument, in MAC order.
     pub fn start_disconnect_all(&self) -> Result<(), Error> {
         // SAFETY: a live handle.
@@ -588,7 +544,9 @@ impl BleManager {
     /// deletes all its bonds, and its [`BleCentral::bonded_macs`] is emptied. A dongle that is
     /// not ready: an [`Event::LibLog`] warning, nothing changes.
     pub fn reset_connections(&self, central: Mac) -> Result<(), Error> {
-        let raw = sys::sylvac_ble_mac { bytes: central.0 };
+        let raw = sys::sylvac_ble_mac {
+            le_bytes: central.to_le_bytes(),
+        };
         // SAFETY: a live handle and a valid address.
         check(unsafe { sys::sylvac_ble_reset_connections(self.inner.handle, &raw) })
     }
@@ -598,30 +556,15 @@ impl BleManager {
     /// `Rejected { UnknownCentral }` when `central` is not a ready dongle.
     pub fn delete_bond(&self, central: Mac, peripheral: Mac) -> Result<(), Error> {
         let (raw_central, raw) = (
-            sys::sylvac_ble_mac { bytes: central.0 },
             sys::sylvac_ble_mac {
-                bytes: peripheral.0,
+                le_bytes: central.to_le_bytes(),
+            },
+            sys::sylvac_ble_mac {
+                le_bytes: peripheral.to_le_bytes(),
             },
         );
         // SAFETY: a live handle and valid addresses.
         check(unsafe { sys::sylvac_ble_delete_bond(self.inner.handle, &raw_central, &raw) })
-    }
-
-    /// Whether the list of devices heard holds only Sylvac
-    /// devices. Starts as [`BleConfig::sylvac_only`].
-    pub fn sylvac_only(&self) -> bool {
-        let mut on = 0;
-        // SAFETY: a live handle and a valid place for the answer.
-        let status = unsafe { sys::sylvac_ble_get_sylvac_only(self.inner.handle, &mut on) };
-        status == sys::SYLVAC_BLE_OK && on != 0
-    }
-
-    /// Sets [`BleManager::sylvac_only`] at any time. The list is filtered again at once: an
-    /// [`Event::AdvertiserRemoved`] for each device listed that no longer passes, an
-    /// [`Event::AdvertiserChanged`] for each device heard in the last minute that now does.
-    pub fn set_sylvac_only(&self, on: bool) -> Result<(), Error> {
-        // SAFETY: a live handle.
-        check(unsafe { sys::sylvac_ble_set_sylvac_only(self.inner.handle, u32::from(on)) })
     }
 
     /// Connects the instrument on the dongle with the most free slots and keeps it connected
@@ -632,7 +575,9 @@ impl BleManager {
     /// [`ConnectionStep::Subscribed`]; refusal: [`Event::Rejected`], then
     /// [`Event::PeripheralRemoved`] when it was added.
     pub fn start_connect(&self, mac: Mac) -> Result<BlePeripheral, Error> {
-        let raw = sys::sylvac_ble_mac { bytes: mac.0 };
+        let raw = sys::sylvac_ble_mac {
+            le_bytes: mac.to_le_bytes(),
+        };
         // SAFETY: a live handle and a valid address.
         check(unsafe { sys::sylvac_ble_start_connect(self.inner.handle, &raw) })?;
         Ok(self.peripheral(mac))
@@ -644,9 +589,11 @@ impl BleManager {
     /// [`RejectReason::UnknownCentral`] when it is not a ready dongle.
     pub fn start_connect_on(&self, central: Mac, peripheral: Mac) -> Result<BlePeripheral, Error> {
         let (raw_central, raw) = (
-            sys::sylvac_ble_mac { bytes: central.0 },
             sys::sylvac_ble_mac {
-                bytes: peripheral.0,
+                le_bytes: central.to_le_bytes(),
+            },
+            sys::sylvac_ble_mac {
+                le_bytes: peripheral.to_le_bytes(),
             },
         );
         // SAFETY: a live handle and valid addresses.
@@ -659,7 +606,9 @@ impl BleManager {
     /// the instrument keeps connecting. [`Error::Rejected`], [`Error::Released`],
     /// [`Error::WrongThread`] from the callback.
     pub fn connect(&self, mac: Mac, timeout: Duration) -> Result<BlePeripheral, Error> {
-        let raw = sys::sylvac_ble_mac { bytes: mac.0 };
+        let raw = sys::sylvac_ble_mac {
+            le_bytes: mac.to_le_bytes(),
+        };
         // SAFETY: a live handle, NULL (any dongle) and a valid address.
         check(unsafe {
             sys::sylvac_ble_connect(self.inner.handle, ptr::null(), &raw, wait_ms(timeout))
@@ -675,9 +624,11 @@ impl BleManager {
         timeout: Duration,
     ) -> Result<BlePeripheral, Error> {
         let (raw_central, raw) = (
-            sys::sylvac_ble_mac { bytes: central.0 },
             sys::sylvac_ble_mac {
-                bytes: peripheral.0,
+                le_bytes: central.to_le_bytes(),
+            },
+            sys::sylvac_ble_mac {
+                le_bytes: peripheral.to_le_bytes(),
             },
         );
         // SAFETY: a live handle and valid addresses.
@@ -714,23 +665,10 @@ impl BleManager {
         }
     }
 
-    /// Devices heard in the last 60 s while scanning.
-    pub fn advertisers(&self) -> Vec<BleAdvertiser> {
-        let mut list = ptr::null_mut();
-        // SAFETY: a live handle and a valid place for the list pointer.
-        if unsafe { sys::sylvac_ble_advertisers(self.inner.handle, &mut list) }
-            != sys::SYLVAC_BLE_OK
-        {
-            return Vec::new();
-        }
-        // SAFETY: as in `dongles`.
-        unsafe {
-            let advertisers = items((*list).items, (*list).count)
-                .iter()
-                .map(|item| convert::advertiser(&**item))
-                .collect();
-            sys::sylvac_ble_advertiser_list_free(list);
-            advertisers
+    /// The scan: its filter, its start and stop, the list of devices heard.
+    pub fn scan(&self) -> BleScan {
+        BleScan {
+            inner: self.inner.clone(),
         }
     }
 
@@ -773,6 +711,96 @@ impl Drop for BleManager {
     }
 }
 
+/// The scan of a [`BleManager`] ([`BleManager::scan`]): what it lists, when, and the devices
+/// heard. A cheap handle: clone it, keep it, send it to other threads. Its calls fail with
+/// [`Error::Stopped`] once the manager is stopped.
+#[derive(Clone)]
+pub struct BleScan {
+    inner: Arc<Inner>,
+}
+
+impl BleScan {
+    /// Whether the scan lists only Sylvac devices (20 name prefixes). Off at start.
+    pub fn sylvac_only(&self) -> bool {
+        let mut on = 0;
+        // SAFETY: a live handle and a valid place for the answer.
+        let status = unsafe { sys::sylvac_ble_scan_get_sylvac_only(self.inner.handle, &mut on) };
+        status == sys::SYLVAC_BLE_OK && on != 0
+    }
+
+    /// Sets [`BleScan::sylvac_only`], before or during a scan. The list is filtered again at
+    /// once: an
+    /// [`Event::AdvertiserRemoved`] for each device listed that no longer passes, an
+    /// [`Event::AdvertiserChanged`] for each device heard in the last minute that now does.
+    pub fn set_sylvac_only(&self, on: bool) -> Result<(), Error> {
+        // SAFETY: a live handle.
+        check(unsafe { sys::sylvac_ble_scan_set_sylvac_only(self.inner.handle, u32::from(on)) })
+    }
+
+    /// Lists the devices heard ([`Event::AdvertiserChanged`]), filtered by
+    /// [`BleScan::sylvac_only`]. Dongles still scan by themselves while an instrument to connect has no link, whether or not the list is on.
+    pub fn start(&self) -> Result<(), Error> {
+        // SAFETY: a live handle.
+        check(unsafe { sys::sylvac_ble_scan_start(self.inner.handle) })
+    }
+
+    /// Stops the list, on whichever dongle scans.
+    pub fn stop(&self) -> Result<(), Error> {
+        // SAFETY: a live handle.
+        check(unsafe { sys::sylvac_ble_scan_stop(self.inner.handle) })
+    }
+
+    /// Empties the list of devices heard, with an [`Event::AdvertiserRemoved`]
+    /// for each; a device still around is listed again at its next advertisement.
+    pub fn clear(&self) -> Result<(), Error> {
+        // SAFETY: a live handle.
+        check(unsafe { sys::sylvac_ble_scan_clear(self.inner.handle) })
+    }
+
+    /// The dongle `central` scans and its advertisements make the list, instead of the dongle
+    /// the library chooses. It keeps the scan while it is ready (a lost dongle hands it over and
+    /// takes it back when it returns).
+    /// [`BleScan::start`] or [`BleScan::stop`] give the choice back to the
+    /// library. A dongle that is not ready: an [`Event::LibLog`] warning, nothing changes.
+    pub fn start_on(&self, central: Mac) -> Result<(), Error> {
+        let raw = sys::sylvac_ble_mac {
+            le_bytes: central.to_le_bytes(),
+        };
+        // SAFETY: a live handle and a valid address.
+        check(unsafe { sys::sylvac_ble_scan_start_on(self.inner.handle, &raw) })
+    }
+
+    /// When `central` is the scanning dongle, the list stops and the choice goes back to the
+    /// library; otherwise nothing.
+    pub fn stop_on(&self, central: Mac) -> Result<(), Error> {
+        let raw = sys::sylvac_ble_mac {
+            le_bytes: central.to_le_bytes(),
+        };
+        // SAFETY: a live handle and a valid address.
+        check(unsafe { sys::sylvac_ble_scan_stop_on(self.inner.handle, &raw) })
+    }
+
+    /// Devices heard in the last 60 s while scanning.
+    pub fn advertisers(&self) -> Vec<BleAdvertiser> {
+        let mut list = ptr::null_mut();
+        // SAFETY: a live handle and a valid place for the list pointer.
+        if unsafe { sys::sylvac_ble_scan_advertisers(self.inner.handle, &mut list) }
+            != sys::SYLVAC_BLE_OK
+        {
+            return Vec::new();
+        }
+        // SAFETY: as in `dongles`.
+        unsafe {
+            let advertisers = items((*list).items, (*list).count)
+                .iter()
+                .map(|item| convert::advertiser(&**item))
+                .collect();
+            sys::sylvac_ble_advertiser_list_free(list);
+            advertisers
+        }
+    }
+}
+
 /// An instrument asked for with [`BleManager::start_connect`]. A cheap handle: clone it, keep it, send
 /// it to other threads. Its calls fail with [`Error::Stopped`] once the manager is stopped.
 #[derive(Clone)]
@@ -790,9 +818,10 @@ impl BlePeripheral {
     /// [`Event::ConnectionStepChanged`]; [`ConnectionStep::None`] while not connected, and for
     /// an instrument not asked for (or disconnected).
     ///
-    /// The getters read the state the library publishes after each change, so they can trail
-    /// the event stream by a moment: an event just taken may not show yet, and the state can
-    /// already show a change whose event is still queued.
+    /// The getters read the state the library publishes before it hands out the events of each
+    /// change: an event already taken (or given to the callback), or a waiting call that
+    /// returned, always shows in them; they can be ahead, showing a change whose event is still
+    /// queued.
     pub fn connection_step(&self) -> ConnectionStep {
         self.state().step
     }
@@ -853,7 +882,9 @@ impl BlePeripheral {
     /// [`Event::Rejected`] when the instrument is not ready.
     pub fn send_command(&self, command: &str) -> Result<(), Error> {
         let command = c_text(command, "the command")?;
-        let raw = sys::sylvac_ble_mac { bytes: self.mac.0 };
+        let raw = sys::sylvac_ble_mac {
+            le_bytes: self.mac.to_le_bytes(),
+        };
         // SAFETY: a live handle, a valid address and a NUL-terminated string.
         check(unsafe { sys::sylvac_ble_send_command(self.inner.handle, &raw, command.as_ptr()) })
     }
@@ -888,7 +919,9 @@ impl BlePeripheral {
         let end_of_frame = end_of_frame
             .map(|e| c_text(e, "the end of frame"))
             .transpose()?;
-        let raw = sys::sylvac_ble_mac { bytes: self.mac.0 };
+        let raw = sys::sylvac_ble_mac {
+            le_bytes: self.mac.to_le_bytes(),
+        };
         let mut reply = vec![0u8; REPLY_SIZE];
         // SAFETY: a live handle, a valid address, NUL-terminated strings (or NULL) and a buffer
         // of `REPLY_SIZE` bytes.
@@ -911,7 +944,9 @@ impl BlePeripheral {
     /// [`Event::Disconnected`]. [`Error::Rejected`] with `NotConnected` for an instrument
     /// not asked for; [`Error::WrongThread`] from the callback.
     pub fn disconnect(&self, timeout: Duration) -> Result<(), Error> {
-        let raw = sys::sylvac_ble_mac { bytes: self.mac.0 };
+        let raw = sys::sylvac_ble_mac {
+            le_bytes: self.mac.to_le_bytes(),
+        };
         // SAFETY: a live handle and a valid address.
         check(unsafe { sys::sylvac_ble_disconnect(self.inner.handle, &raw, wait_ms(timeout)) })
     }
@@ -927,7 +962,9 @@ impl BlePeripheral {
     /// Sets [`Self::auto_reassign`]; a request about an instrument not asked for is answered
     /// by [`Event::Rejected`] with [`RejectReason::NotConnected`].
     pub fn set_auto_reassign(&self, on: bool) -> Result<(), Error> {
-        let raw = sys::sylvac_ble_mac { bytes: self.mac.0 };
+        let raw = sys::sylvac_ble_mac {
+            le_bytes: self.mac.to_le_bytes(),
+        };
         // SAFETY: a live handle and a valid address.
         check(unsafe { sys::sylvac_ble_set_auto_reassign(self.inner.handle, &raw, u32::from(on)) })
     }
@@ -935,7 +972,9 @@ impl BlePeripheral {
     /// Disconnects and stops reconnecting ([`Event::Disconnected`] with
     /// [`DisconnectReason::Requested`]).
     pub fn start_disconnect(&self) -> Result<(), Error> {
-        let raw = sys::sylvac_ble_mac { bytes: self.mac.0 };
+        let raw = sys::sylvac_ble_mac {
+            le_bytes: self.mac.to_le_bytes(),
+        };
         // SAFETY: a live handle and a valid address.
         check(unsafe { sys::sylvac_ble_start_disconnect(self.inner.handle, &raw) })
     }
@@ -946,6 +985,14 @@ impl fmt::Debug for BlePeripheral {
         f.debug_struct("BlePeripheral")
             .field("mac", &self.mac)
             .finish()
+    }
+}
+
+impl fmt::Debug for BleScan {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("BleScan")
+            .field("sylvac_only", &self.sylvac_only())
+            .finish_non_exhaustive()
     }
 }
 

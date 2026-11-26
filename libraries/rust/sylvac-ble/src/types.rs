@@ -7,23 +7,150 @@ use std::time::SystemTime;
 
 use sylvac_ble_sys as sys;
 
-/// Bluetooth address of a dongle or an instrument, most significant byte first, printed as
-/// 12 upper-case hex digits (`D216182F6CCC`, as on the instrument label).
-#[derive(Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
-pub struct Mac(pub [u8; 6]);
+/// Bluetooth address of a dongle or an instrument, with the API of the library's own Rust `Mac`
+/// (the engine's BGAPI `bd_addr`). Printed, parsed, compared and converted to a number in display
+/// order, as shown in the BT > MAC menu of the instrument (`D216182F6CCC`); the `_le_` byte
+/// functions give the BGAPI wire order.
+///
+/// ```no_run
+/// use sylvac_ble::{mac, Mac};
+///
+/// const SY289: Mac = mac!("D2:16:18:2F:6C:CC"); // checked at compile time
+///
+/// assert_eq!(Mac::from_u64(0xD216_182F_6CCC), Some(SY289));
+/// assert_eq!(Mac::from_be_bytes([0xD2, 0x16, 0x18, 0x2F, 0x6C, 0xCC]), SY289); // display order
+/// assert_eq!(Mac::from_le_bytes([0xCC, 0x6C, 0x2F, 0x18, 0x16, 0xD2]), SY289); // wire order
+/// assert_eq!("d216182f6ccc".parse::<Mac>()?, SY289); // text from a file or a user
+/// assert_eq!(SY289.to_string(), "D216182F6CCC");
+/// # Ok::<(), sylvac_ble::MacParseError>(())
+/// ```
+// Held least significant byte first, as the C struct `sylvac_ble_mac` (`le_bytes`) and the
+// BGAPI `bd_addr`.
+#[derive(Clone, Copy, PartialEq, Eq, Hash, Default)]
+pub struct Mac([u8; 6]);
 
+impl Mac {
+    /// `000000000000`, the "any" address (`BT_ADDR_ANY`).
+    pub const ANY: Self = Self([0; 6]);
+
+    /// `FFFFFFFFFFFF`, the "none" address (`BT_ADDR_NONE`).
+    pub const NONE: Self = Self([0xFF; 6]);
+
+    /// The largest address, `FFFFFFFFFFFF`, as a number.
+    pub const MAX_U64: u64 = 0xFFFF_FFFF_FFFF;
+
+    /// From the six bytes in wire order, least significant first (`CC` of `D216182F6CCC`
+    /// first), as in a BGAPI payload.
+    pub const fn from_le_bytes(bytes: [u8; 6]) -> Self {
+        Self(bytes)
+    }
+
+    /// The six bytes in wire order, least significant first, as in the C struct
+    /// `sylvac_ble_mac` (`le_bytes`).
+    pub const fn to_le_bytes(self) -> [u8; 6] {
+        self.0
+    }
+
+    /// From the six bytes in display order, most significant first (`D2` of `D216182F6CCC`
+    /// first).
+    pub const fn from_be_bytes(bytes: [u8; 6]) -> Self {
+        let [b5, b4, b3, b2, b1, b0] = bytes;
+        Self([b0, b1, b2, b3, b4, b5])
+    }
+
+    /// The six bytes in display order, most significant first.
+    pub const fn to_be_bytes(self) -> [u8; 6] {
+        let [b0, b1, b2, b3, b4, b5] = self.0;
+        [b5, b4, b3, b2, b1, b0]
+    }
+
+    /// From the address as a number, written as displayed: `0xD216_182F_6CCC` is
+    /// `D216182F6CCC`. The number's value counts, not its bytes in memory, so it is the same
+    /// on every platform (as a Windows `BluetoothAddress`). `None` above [`Mac::MAX_U64`].
+    pub const fn from_u64(value: u64) -> Option<Self> {
+        if value > Self::MAX_U64 {
+            return None;
+        }
+        let [b0, b1, b2, b3, b4, b5, _, _] = value.to_le_bytes();
+        Some(Self([b0, b1, b2, b3, b4, b5]))
+    }
+
+    /// The address as a number: `D216182F6CCC` is `0xD216_182F_6CCC`.
+    pub const fn to_u64(self) -> u64 {
+        let [b0, b1, b2, b3, b4, b5] = self.0;
+        u64::from_le_bytes([b0, b1, b2, b3, b4, b5, 0, 0])
+    }
+
+    /// `false` for [`Mac::ANY`] and [`Mac::NONE`].
+    pub const fn is_defined(self) -> bool {
+        self.to_u64() != Self::ANY.to_u64() && self.to_u64() != Self::NONE.to_u64()
+    }
+
+    /// Reads the displayed form: 12 hex digits, either case, with any number of `:` or `-`
+    /// between them. `None` for anything else. A `const fn`, so an address can be checked at
+    /// compile time ([`mac!`](crate::mac!)). `FromStr` asks the library instead; the tests check that both
+    /// accept the same text.
+    pub const fn parse(text: &str) -> Option<Self> {
+        let text = text.as_bytes();
+        let mut bytes = [0u8; 6];
+        let mut digits = 0;
+        let mut index = 0;
+        while index < text.len() {
+            let nibble = match text[index] {
+                byte @ b'0'..=b'9' => byte - b'0',
+                byte @ b'a'..=b'f' => byte - b'a' + 10,
+                byte @ b'A'..=b'F' => byte - b'A' + 10,
+                b':' | b'-' => {
+                    index += 1;
+                    continue;
+                }
+                _ => return None,
+            };
+            if digits == 12 {
+                return None;
+            }
+            // The first digit pair is the most significant byte, last in `le_bytes`.
+            let byte = 5 - digits / 2;
+            bytes[byte] = (bytes[byte] << 4) | nibble;
+            digits += 1;
+            index += 1;
+        }
+        if digits == 12 {
+            Some(Self(bytes))
+        } else {
+            None
+        }
+    }
+}
+
+/// Display order, as the numbers and as the library: `0000000000FF` before `010000000000`,
+/// although its first byte in `le_bytes` is the larger.
+impl Ord for Mac {
+    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+        self.to_u64().cmp(&other.to_u64())
+    }
+}
+
+impl PartialOrd for Mac {
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+/// 12 upper-case hex digits, most significant first: `D216182F6CCC`.
 impl fmt::Display for Mac {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        for byte in self.0 {
+        for byte in self.0.iter().rev() {
             write!(f, "{byte:02X}")?;
         }
         Ok(())
     }
 }
 
+/// As `Display`, like the standard library's IP addresses: `D216182F6CCC`.
 impl fmt::Debug for Mac {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "Mac({self})")
+        fmt::Display::fmt(self, f)
     }
 }
 
@@ -50,15 +177,78 @@ impl FromStr for Mac {
     fn from_str(text: &str) -> Result<Self, Self::Err> {
         let error = || MacParseError(text.to_owned());
         let c_text = CString::new(text).map_err(|_| error())?;
-        let mut mac = sys::sylvac_ble_mac { bytes: [0; 6] };
+        let mut mac = sys::sylvac_ble_mac { le_bytes: [0; 6] };
         // SAFETY: a NUL-terminated string and a valid struct to write.
         let status = unsafe { sys::sylvac_ble_mac_parse(c_text.as_ptr(), &mut mac) };
         if status == sys::SYLVAC_BLE_OK {
-            Ok(Self(mac.bytes))
+            Ok(Self(mac.le_bytes))
         } else {
             Err(error())
         }
     }
+}
+
+/// A number above `0xFFFF_FFFF_FFFF` given as a Bluetooth address, which has 48 bits.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct MacRangeError(pub u64);
+
+impl fmt::Display for MacRangeError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "invalid Bluetooth address {:#X}: above 48 bits (0xFFFFFFFFFFFF)",
+            self.0
+        )
+    }
+}
+
+impl std::error::Error for MacRangeError {}
+
+impl TryFrom<u64> for Mac {
+    type Error = MacRangeError;
+
+    /// As [`Mac::from_u64`].
+    fn try_from(value: u64) -> Result<Self, Self::Error> {
+        Self::from_u64(value).ok_or(MacRangeError(value))
+    }
+}
+
+impl From<Mac> for u64 {
+    fn from(mac: Mac) -> Self {
+        mac.to_u64()
+    }
+}
+
+/// A [`Mac`] from its displayed text, checked at compile time: a typo does not build.
+///
+/// Takes what `FromStr` takes: 12 hex digits, either case, with any number of `:` or `-`
+/// between them.
+///
+/// ```
+/// use sylvac_ble::{mac, Mac};
+///
+/// const SY289: Mac = mac!("D216182F6CCC");
+/// assert_eq!(mac!("d2:16:18:2f:6c:cc"), SY289);
+/// ```
+///
+/// ```compile_fail
+/// let _ = sylvac_ble::mac!("D216182F6CC"); // 11 digits
+/// ```
+#[macro_export]
+macro_rules! mac {
+    ($text:literal) => {{
+        // A named constant, not `const { }`: `cargo check` (and so the editor) evaluates
+        // it too, not only `cargo build`.
+        const MAC: $crate::Mac = match $crate::Mac::parse($text) {
+            ::core::option::Option::Some(mac) => mac,
+            ::core::option::Option::None => ::core::panic!(::core::concat!(
+                "invalid Bluetooth address ",
+                ::core::stringify!($text),
+                ": expected 12 hex digits, optionally separated by ':' or '-'"
+            )),
+        };
+        MAC
+    }};
 }
 
 /// Model of a Sylvac dongle.
@@ -148,7 +338,7 @@ pub struct BleAdvertiser {
     /// The scanning dongle holds a bond for this device.
     pub bonded_to_dongle: bool,
     /// When its last packet was heard. [`Event::AdvertiserChanged`] is not sent for this alone:
-    /// [`crate::BleManager::advertisers`] has the latest.
+    /// [`crate::BleScan::advertisers`] has the latest.
     pub date_received: SystemTime,
 }
 
@@ -407,11 +597,18 @@ pub enum Event {
         peripheral: Mac,
         value: MeasuringParams,
     },
-    /// Live value, in the unit of the last [`Event::MeasurementParamsChanged`] and rounded half
-    /// to even to its `numerical_resolution`; [`MeasuringParams::format`] shows it as the
-    /// instrument does. The value is not filtered: an SY289 with firmware r4.10r sends 100 x the
-    /// real value as its first measurement after each connection.
-    NumericalValueChanged { peripheral: Mac, value: f64 },
+    /// Live value and the `measurement_params` it is in: its unit, and rounded half to even to
+    /// their `numerical_resolution`; `measurement_params.format(value)` shows it as the
+    /// instrument does. The same parameters as the last [`Event::MeasurementParamsChanged`], sent
+    /// before this event when they changed; carried here so that each value can be shown without
+    /// keeping them (the getter [`crate::BlePeripheral::measurement_params`] can be ahead of
+    /// the event stream). The value is not filtered: an SY289 with firmware r4.10r sends 100 x
+    /// the real value as its first measurement after each connection.
+    NumericalValueChanged {
+        peripheral: Mac,
+        value: f64,
+        measurement_params: MeasuringParams,
+    },
     /// The instrument's Data button was pressed: `value` is the line as received.
     InstrumentButtonPressed { peripheral: Mac, value: String },
     /// A reply line (`value`). `command` is the command it

@@ -41,10 +41,14 @@ mod tests {
             offset_of!(sylvac_ble_advertiser, is_low_battery),
             3 * P + 52
         );
-        assert_eq!(size_of::<sylvac_ble_numerical_value_changed_event>(), 16);
+        assert_eq!(size_of::<sylvac_ble_numerical_value_changed_event>(), 32);
         assert_eq!(
             offset_of!(sylvac_ble_numerical_value_changed_event, peripheral),
             8
+        );
+        assert_eq!(
+            offset_of!(sylvac_ble_numerical_value_changed_event, measurement_params),
+            16
         );
         assert_eq!(size_of::<sylvac_ble_measuring_params>(), 16);
         assert_eq!(size_of::<sylvac_ble_measurement_params_changed_event>(), 24);

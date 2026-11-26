@@ -30,7 +30,7 @@ sylvac-ble = { path = "path/to/BluetoothDevTools/libraries/rust/sylvac-ble" }
 ```bash
 export SYLVAC_BLE_SDK_DIR=/path/to/BluetoothDevTools/libraries/c       # Linux
 set SYLVAC_BLE_SDK_DIR=C:\path\to\BluetoothDevTools\libraries\c        # Windows
-cargo run --example monitor -- --scan --sylvac-only
+cargo run --example quickstart
 ```
 
 `cargo run` and `cargo test` find the library by themselves. A program started otherwise needs
@@ -44,23 +44,26 @@ user to the `dialout` group.
 
 ```rust
 use std::time::Duration;
-use sylvac_ble::{BleConfig, BleManager, ConnectionStep, Event};
+use sylvac_ble::{mac, BleConfig, BleManager, ConnectionStep, Event};
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let ble = BleManager::start(BleConfig { sylvac_only: true, ..BleConfig::default() })?;
-    ble.start_scan()?;
-    ble.start_connect("D216182F6CCC".parse()?)?;   // the address on the instrument label
-    let mut params = None;                         // always reported before the values
+    let ble = BleManager::start(BleConfig::default())?;
+    let scan = ble.scan();
+
+    // List Sylvac instruments only
+    scan.set_sylvac_only(true)?;
+    scan.start()?;
+
+    // Bluetooth address of the instrument (BT > MAC menu)
+    ble.start_connect(mac!("D216182F6CCC"))?;
+
     while let Some(event) = ble.next_event(Duration::from_secs(30)) {
         match event {
             Event::ConnectionStepChanged { peripheral, value: ConnectionStep::Subscribed } => {
                 ble.peripheral(peripheral).send_command("ID?")?;
             }
-            Event::MeasurementParamsChanged { value, .. } => params = Some(value),
-            Event::NumericalValueChanged { value, .. } => {
-                if let Some(p) = &params {
-                    println!("{} {:?}", p.format(value), p.unit);
-                }
+            Event::NumericalValueChanged { value, measurement_params: p, .. } => {
+                println!("{} {:?}", p.format(value), p.unit);
             }
             Event::InstrumentResponseReceived { value, command, .. } => {
                 println!("{command:?} -> {value}");
@@ -88,5 +91,14 @@ comes. `BleManager` and `BlePeripheral` can be shared between threads.
 Use the crates and the compiled library from the same release: if they don't match,
 `BleManager::start` fails with `Error::AbiMismatch`.
 
-[`sylvac-ble/examples/monitor.rs`](sylvac-ble/examples/monitor.rs) prints every event and takes
-commands on its standard input.
+## Example
+
+[`sylvac-ble/examples/quickstart.rs`](sylvac-ble/examples/quickstart.rs) finds the dongle, lists
+the instruments around (nearest first, with battery and advertised value) and connects the one
+you choose. It then asks it `ID?` and `?`, shows its value live, and tells you when the
+connection drops and comes back.
+
+```bash
+cargo run --example quickstart                    # choose among the instruments heard
+cargo run --example quickstart -- D216182F6CCC    # connect this one
+```

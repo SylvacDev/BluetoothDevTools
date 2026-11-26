@@ -28,7 +28,7 @@ unsafe fn text(p: *const c_char) -> String {
 }
 
 fn mac(m: sys::sylvac_ble_mac) -> Mac {
-    Mac(m.bytes)
+    Mac::from_le_bytes(m.le_bytes)
 }
 
 /// # Safety
@@ -286,6 +286,9 @@ pub(crate) unsafe fn event(e: &sys::sylvac_ble_event) -> Event {
             sys::SYLVAC_BLE_EVENT_NUMERICAL_VALUE_CHANGED => Event::NumericalValueChanged {
                 peripheral: mac(data.numerical_value_changed.peripheral),
                 value: data.numerical_value_changed.value,
+                measurement_params: measuring_params(
+                    &data.numerical_value_changed.measurement_params,
+                ),
             },
             sys::SYLVAC_BLE_EVENT_INSTRUMENT_BUTTON_PRESSED => Event::InstrumentButtonPressed {
                 peripheral: mac(data.instrument_button_pressed.peripheral),

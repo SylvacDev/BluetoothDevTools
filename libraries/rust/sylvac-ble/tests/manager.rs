@@ -6,7 +6,7 @@ use std::time::{Duration, Instant};
 
 use sylvac_ble::{
     BleConfig, BleManager, BlePeripheral, ConnectionStep, Error, Event, LogLevel, Mac,
-    MeasuringParams, PairingStatus, RejectReason, SdsMode, SdsResolution, SdsUnit,
+    MacRangeError, MeasuringParams, PairingStatus, RejectReason, SdsMode, SdsResolution, SdsUnit,
 };
 
 #[cfg(windows)]
@@ -32,7 +32,7 @@ fn versions_and_defaults_come_from_the_library() {
     let version = sylvac_ble::library_version();
     assert_eq!(version.split('.').count(), 3, "{version}");
     let config = BleConfig::default();
-    assert!(config.hot_plug && !config.auto_reassign && !config.sylvac_only);
+    assert!(config.hot_plug && !config.auto_reassign);
     assert!(config.ports.is_empty());
     assert_eq!(config.response_timeout, Duration::from_secs(3));
     assert_eq!(config.queue_capacity, 10_000);
@@ -63,9 +63,9 @@ fn values_are_formatted_by_the_library() {
 #[test]
 fn mac_text() {
     let mac: Mac = "d2:16:18:2f:6c:cc".parse().unwrap();
-    assert_eq!(mac.0, [0xD2, 0x16, 0x18, 0x2F, 0x6C, 0xCC]);
+    assert_eq!(mac.to_be_bytes(), [0xD2, 0x16, 0x18, 0x2F, 0x6C, 0xCC]);
     assert_eq!(mac.to_string(), "D216182F6CCC");
-    assert_eq!(format!("{mac:?}"), "Mac(D216182F6CCC)");
+    assert_eq!(format!("{mac:?}"), "D216182F6CCC");
     assert_eq!("D2-16-18-2F-6C-CC".parse::<Mac>(), Ok(mac));
     assert_eq!("D216182F6CCC".parse::<Mac>(), Ok(mac));
     for bad in ["D216182F6C", "", "D216182F6CCG", "D216182F6CC\0C"] {
@@ -73,6 +73,75 @@ fn mac_text() {
         assert_eq!(error.0, bad);
         assert!(error.to_string().contains("12 hex digits"), "{error}");
     }
+}
+
+/// `mac!` parses in Rust at compile time while `FromStr` asks the library: both must accept
+/// the same text.
+#[test]
+fn mac_macro_accepts_what_the_library_accepts() {
+    let label = Mac::from_be_bytes([0xD2, 0x16, 0x18, 0x2F, 0x6C, 0xCC]);
+    let texts = [
+        // accepted
+        "D216182F6CCC",
+        "d216182f6ccc",
+        "D2:16:18:2F:6C:CC",
+        "D2-16-18-2F-6C-CC",
+        "D216:182F6C-CC",
+        ":D216182F6CCC::",
+        "000000000000",
+        "FFFFFFFFFFFF",
+        // rejected
+        "",
+        "D216182F6CC",
+        "D216182F6CCC0",
+        "D216182F6CCG",
+        "+216182F6CCC",
+        "D216182F6CC+",
+        " D216182F6CCC",
+        "D216182F6CCC ",
+        "D2 16 18 2F 6C CC",
+        "D2.16.18.2F.6C.CC",
+        "0xD216182F6CC",
+        "D216182F6CCÇ",
+    ];
+    for text in texts {
+        assert_eq!(Mac::parse(text), text.parse::<Mac>().ok(), "{text:?}");
+    }
+    assert_eq!(Mac::parse("D2-16-18-2F-6C-CC"), Some(label));
+    assert_eq!(Mac::parse("+216182F6CCC"), None);
+
+    const LABEL: Mac = sylvac_ble::mac!("D216182F6CCC");
+    assert_eq!(LABEL, label);
+    assert_eq!(sylvac_ble::mac!("d2:16:18:2f:6c:cc"), label);
+}
+
+/// The same API as the library's own Rust `Mac`: display order outside, wire order on demand.
+#[test]
+fn mac_bytes_u64_and_ordering() {
+    let label = Mac::from_be_bytes([0xD2, 0x16, 0x18, 0x2F, 0x6C, 0xCC]);
+    assert_eq!(
+        Mac::from_le_bytes([0xCC, 0x6C, 0x2F, 0x18, 0x16, 0xD2]),
+        label
+    );
+    assert_eq!(label.to_le_bytes(), [0xCC, 0x6C, 0x2F, 0x18, 0x16, 0xD2]);
+    assert_eq!(label.to_be_bytes(), [0xD2, 0x16, 0x18, 0x2F, 0x6C, 0xCC]);
+    assert_eq!(Mac::from_u64(0xD216_182F_6CCC), Some(label));
+    assert_eq!(Mac::try_from(0xD216_182F_6CCC_u64), Ok(label));
+    assert_eq!(label.to_u64(), 0xD216_182F_6CCC);
+    assert_eq!(u64::from(label), 0xD216_182F_6CCC);
+    assert_eq!(Mac::from_u64(0), Some(Mac::ANY));
+    assert_eq!(Mac::from_u64(Mac::MAX_U64), Some(Mac::NONE));
+    assert_eq!(Mac::from_u64(Mac::MAX_U64 + 1), None);
+    assert_eq!(Mac::try_from(u64::MAX), Err(MacRangeError(u64::MAX)));
+    assert_eq!(
+        MacRangeError(0x1_0000_0000_0000).to_string(),
+        "invalid Bluetooth address 0x1000000000000: above 48 bits (0xFFFFFFFFFFFF)"
+    );
+    assert!(label.is_defined() && !Mac::ANY.is_defined() && !Mac::NONE.is_defined());
+    assert_eq!(Mac::default(), Mac::ANY);
+    let low = Mac::from_u64(0x0000_0000_00FF).unwrap();
+    let high = Mac::from_u64(0x0100_0000_0000).unwrap();
+    assert!(low < high, "display order, as the library");
 }
 
 #[test]
@@ -112,19 +181,21 @@ fn missing_port_fails_once_and_stop_is_bounded() {
         other => panic!("{other:?}"),
     }
     assert!(manager.centrals().is_empty());
-    assert!(manager.advertisers().is_empty());
-    manager.start_scan().unwrap();
-    manager.clear_scan().unwrap();
-    manager.stop_scan().unwrap();
-    // sylvac_only: as configured, then as set.
-    assert!(!manager.sylvac_only());
-    manager.set_sylvac_only(true).unwrap();
-    assert!(manager.sylvac_only());
-    // A dongle that is not ready: start_scan_on and reset_connections answer with a warning.
+    let scan = manager.scan();
+    assert!(scan.advertisers().is_empty());
+    scan.start().unwrap();
+    scan.clear().unwrap();
+    scan.stop().unwrap();
+    // The scan's sylvac_only: off at start, then as set.
+    assert!(!scan.sylvac_only());
+    scan.set_sylvac_only(true).unwrap();
+    assert!(scan.sylvac_only());
+    assert!(manager.scan().sylvac_only(), "one setting for every handle");
+    // A dongle that is not ready: scan.start_on and reset_connections answer with a warning.
     let nowhere: Mac = "F0000000000B".parse().unwrap();
-    manager.start_scan_on(nowhere).unwrap();
+    scan.start_on(nowhere).unwrap();
     manager.reset_connections(nowhere).unwrap();
-    manager.stop_scan_on(nowhere).unwrap();
+    scan.stop_on(nowhere).unwrap();
     for _ in 0..2 {
         match manager.next_event(Duration::from_secs(2)) {
             Some(Event::LibLog {
@@ -228,8 +299,8 @@ fn missing_port_fails_once_and_stop_is_bounded() {
 
     assert_eq!(instrument.send_command("?"), Err(Error::Stopped));
     assert_eq!(instrument.start_disconnect(), Err(Error::Stopped));
-    assert_eq!(manager.start_scan(), Err(Error::Stopped));
-    assert_eq!(manager.set_sylvac_only(false), Err(Error::Stopped));
+    assert_eq!(scan.start(), Err(Error::Stopped));
+    assert_eq!(scan.set_sylvac_only(false), Err(Error::Stopped));
     assert_eq!(manager.start_disconnect_all(), Err(Error::Stopped));
     assert_eq!(manager.start_connect(mac()).unwrap_err(), Error::Stopped);
     assert_eq!(manager.set_callback(|_| {}), Err(Error::Stopped));
@@ -372,7 +443,7 @@ fn calls_from_the_callback() {
         std::thread::sleep(Duration::from_millis(20));
     }
     assert_eq!(manager.next_event(Duration::from_secs(5)), None);
-    assert_eq!(manager.start_scan(), Err(Error::Stopped));
+    assert_eq!(manager.scan().start(), Err(Error::Stopped));
     manager.stop(); // joins; frees the callback, which holds the other reference
     assert_eq!(Arc::strong_count(&manager), 1);
 }

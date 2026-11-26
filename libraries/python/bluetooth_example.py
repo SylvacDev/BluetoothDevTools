@@ -256,14 +256,14 @@ class App:
 
     def start_scan(self) -> None:
         # Filter to receive only Sylvac-compatible advertisements.
-        self.manager.sylvac_only = True
-        self.manager.start_scan()
+        self.manager.scan.sylvac_only = True
+        self.manager.scan.start()
 
     def stop_scan(self) -> None:
-        self.manager.stop_scan()
+        self.manager.scan.stop()
 
     def clear_scan(self) -> None:
-        self.manager.clear_scan()
+        self.manager.scan.clear()
 
     def connect_instrument(self, mac: str) -> None:
         """Connects the instrument through the selected dongle; nothing when none is selected."""

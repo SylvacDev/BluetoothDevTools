@@ -45,20 +45,17 @@ python bluetooth_example.py
 ```python
 import sylvac_ble
 from sylvac_ble import (BleManager, ConnectionStep, ConnectionStepChanged,
-                        InstrumentResponseReceived, MeasurementParamsChanged,
-                        NumericalValueChanged)
+                        InstrumentResponseReceived, NumericalValueChanged)
 
-with BleManager(sylvac_only=True) as ble:      # starts the library; stops it at the end
-    ble.start_scan()
-    ble.start_connect("D216182F6CCC")          # the address on the instrument label
-    params = None                              # always reported before the values
+with BleManager() as ble:                      # starts the library; stops it at the end
+    ble.scan.sylvac_only = True                # list Sylvac instruments only
+    ble.scan.start()
+    ble.start_connect("D216182F6CCC")          # address in the BT > MAC menu of the instrument
     for event in ble.events():                 # Ctrl+C ends the loop
         match event:
             case ConnectionStepChanged(peripheral=mac, value=ConnectionStep.SUBSCRIBED):
                 ble.peripheral(mac).send_command("ID?")
-            case MeasurementParamsChanged(value=p):
-                params = p
-            case NumericalValueChanged(value=value) if params:
+            case NumericalValueChanged(value=value, measurement_params=params):
                 print(params.format(value), params.unit.name)
             case InstrumentResponseReceived(value=text, command=command):
                 print(command, "->", text)
